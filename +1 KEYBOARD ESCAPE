@@ -1,12 +1,13 @@
--- YINETSU HUB - WORKING SIMPLE VERSION
+-- YINETSU HUB - FINAL WORKING
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
--- ==============================================
--- LOADING SCREEN (BOX na may RGB)
--- ==============================================
+-- ============================================
+-- LOADING SCREEN (2 SECONDS)
+-- ============================================
 local loadingGui = Instance.new("ScreenGui")
 loadingGui.Name = "YinetsuLoading"
 loadingGui.IgnoreGuiInset = true
@@ -14,340 +15,335 @@ loadingGui.ResetOnSpawn = false
 loadingGui.DisplayOrder = 99999
 loadingGui.Parent = CoreGui
 
-local loadingBox = Instance.new("Frame")
-loadingBox.Size = UDim2.new(0, 300, 0, 200)
-loadingBox.Position = UDim2.new(0.5, -150, 0.5, -100)
-loadingBox.BackgroundColor3 = Color3.fromRGB(15, 12, 25)
-loadingBox.BorderSizePixel = 0
-loadingBox.Parent = loadingGui
+local lbg = Instance.new("Frame")
+lbg.Size = UDim2.new(1, 0, 1, 0)
+lbg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+lbg.BackgroundTransparency = 0.4
+lbg.BorderSizePixel = 0
+lbg.Parent = loadingGui
 
-local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0, 14)
-boxCorner.Parent = loadingBox
+local box = Instance.new("Frame")
+box.Size = UDim2.new(0, 300, 0, 200)
+box.Position = UDim2.new(0.5, -150, 0.5, -100)
+box.BackgroundColor3 = Color3.fromRGB(15, 12, 25)
+box.BorderSizePixel = 0
+box.Parent = lbg
 
-local boxStroke = Instance.new("UIStroke")
-boxStroke.Thickness = 3
-boxStroke.Color = Color3.fromRGB(180, 0, 255)
-boxStroke.Parent = loadingBox
+local bcr = Instance.new("UICorner")
+bcr.CornerRadius = UDim.new(0, 14)
+bcr.Parent = box
 
-local titleLoad = Instance.new("TextLabel")
-titleLoad.Size = UDim2.new(1, 0, 0, 40)
-titleLoad.Position = UDim2.new(0, 0, 0, 20)
-titleLoad.BackgroundTransparency = 1
-titleLoad.Font = Enum.Font.GothamBlack
-titleLoad.Text = "YINETSU HUB"
-titleLoad.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLoad.TextSize = 28
-titleLoad.Parent = loadingBox
+local bst = Instance.new("UIStroke")
+bst.Thickness = 3
+bst.Color = Color3.fromRGB(180, 0, 255)
+bst.Parent = box
 
-local welcomeLoad = Instance.new("TextLabel")
-welcomeLoad.Size = UDim2.new(1, 0, 0, 25)
-welcomeLoad.Position = UDim2.new(0, 0, 0, 65)
-welcomeLoad.BackgroundTransparency = 1
-welcomeLoad.Font = Enum.Font.GothamBold
-welcomeLoad.Text = "WELCOME, " .. string.upper(LocalPlayer.DisplayName)
-welcomeLoad.TextColor3 = Color3.fromRGB(200, 200, 255)
-welcomeLoad.TextSize = 14
-welcomeLoad.Parent = loadingBox
+local ltitle = Instance.new("TextLabel")
+ltitle.Size = UDim2.new(1, 0, 0, 40)
+ltitle.Position = UDim2.new(0, 0, 0, 20)
+ltitle.BackgroundTransparency = 1
+ltitle.Font = Enum.Font.GothamBlack
+ltitle.Text = "YINETSU HUB"
+ltitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ltitle.TextSize = 28
+ltitle.Parent = box
 
-local statusLoad = Instance.new("TextLabel")
-statusLoad.Size = UDim2.new(1, 0, 0, 20)
-statusLoad.Position = UDim2.new(0, 0, 0, 120)
-statusLoad.BackgroundTransparency = 1
-statusLoad.Font = Enum.Font.Gotham
-statusLoad.Text = "Loading..."
-statusLoad.TextColor3 = Color3.fromRGB(180, 180, 200)
-statusLoad.TextSize = 12
-statusLoad.Parent = loadingBox
+local lwel = Instance.new("TextLabel")
+lwel.Size = UDim2.new(1, 0, 0, 25)
+lwel.Position = UDim2.new(0, 0, 0, 65)
+lwel.BackgroundTransparency = 1
+lwel.Font = Enum.Font.GothamBold
+lwel.Text = "WELCOME, " .. string.upper(LocalPlayer.DisplayName)
+lwel.TextColor3 = Color3.fromRGB(200, 200, 255)
+lwel.TextSize = 14
+lwel.Parent = box
 
-local barBgLoad = Instance.new("Frame")
-barBgLoad.Size = UDim2.new(1, -40, 0, 8)
-barBgLoad.Position = UDim2.new(0, 20, 0, 160)
-barBgLoad.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-barBgLoad.BorderSizePixel = 0
-barBgLoad.Parent = loadingBox
+local lst = Instance.new("TextLabel")
+lst.Size = UDim2.new(1, 0, 0, 20)
+lst.Position = UDim2.new(0, 0, 0, 120)
+lst.BackgroundTransparency = 1
+lst.Font = Enum.Font.Gotham
+lst.Text = "Loading..."
+lst.TextColor3 = Color3.fromRGB(180, 180, 200)
+lst.TextSize = 12
+lst.Parent = box
 
-local barBgCornerLoad = Instance.new("UICorner")
-barBgCornerLoad.CornerRadius = UDim.new(1, 0)
-barBgCornerLoad.Parent = barBgLoad
+local lbar = Instance.new("Frame")
+lbar.Size = UDim2.new(1, -40, 0, 8)
+lbar.Position = UDim2.new(0, 20, 0, 160)
+lbar.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+lbar.BorderSizePixel = 0
+lbar.Parent = box
 
-local barFillLoad = Instance.new("Frame")
-barFillLoad.Size = UDim2.new(0, 0, 1, 0)
-barFillLoad.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
-barFillLoad.BorderSizePixel = 0
-barFillLoad.Parent = barBgLoad
+local lbcr = Instance.new("UICorner")
+lbcr.CornerRadius = UDim.new(1, 0)
+lbcr.Parent = lbar
 
-local barFillCornerLoad = Instance.new("UICorner")
-barFillCornerLoad.CornerRadius = UDim.new(1, 0)
-barFillCornerLoad.Parent = barFillLoad
+local lfill = Instance.new("Frame")
+lfill.Size = UDim2.new(0, 0, 1, 0)
+lfill.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+lfill.BorderSizePixel = 0
+lfill.Parent = lbar
 
--- RGB animation sa loading
+local lfcr = Instance.new("UICorner")
+lfcr.CornerRadius = UDim.new(1, 0)
+lfcr.Parent = lfill
+
+-- RGB sa loading
 local hue = 0
 task.spawn(function()
     while loadingGui.Parent do
         hue = (hue + 0.01) % 1
         local c = Color3.fromHSV(hue, 0.9, 1)
-        boxStroke.Color = c
-        barFillLoad.BackgroundColor3 = c
+        bst.Color = c
+        lfill.BackgroundColor3 = c
         task.wait(0.03)
     end
 end)
 
--- Animate bar
-for i = 1, 20 do
-    barFillLoad.Size = UDim2.new(i/20, 0, 1, 0)
-    task.wait(0.08)
-end
+-- Animate bar (TweenService, hindi blocking)
+TweenService:Create(lfill, TweenInfo.new(1.8), {Size = UDim2.new(1, 0, 1, 0)}):Play()
 
-task.wait(0.3)
-loadingGui:Destroy()
-
--- ==============================================
--- MAIN GUI (AGAD-AGAD PAGKATAPOS NG LOADING)
--- ==============================================
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "YinetsuHub"
-screenGui.ResetOnSpawn = false
-screenGui.DisplayOrder = 9999
-screenGui.Parent = CoreGui
+-- ============================================
+-- MAIN GUI (BUILD AGAD)
+-- ============================================
+local sg = Instance.new("ScreenGui")
+sg.Name = "YinetsuHub"
+sg.ResetOnSpawn = false
+sg.DisplayOrder = 9998
+sg.Parent = CoreGui
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0.9, 0, 0.5, 0)
-main.Position = UDim2.new(0.05, 0, 0.25, 0)
+main.Size = UDim2.new(0.9, 0, 0.55, 0)
+main.Position = UDim2.new(0.05, 0, 0.2, 0)
 main.BackgroundColor3 = Color3.fromRGB(18, 15, 28)
 main.BorderSizePixel = 0
 main.Active = true
-main.Parent = screenGui
+main.Parent = sg
 
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 14)
-mainCorner.Parent = main
+local mcr = Instance.new("UICorner")
+mcr.CornerRadius = UDim.new(0, 14)
+mcr.Parent = main
 
-local mainStroke = Instance.new("UIStroke")
-mainStroke.Thickness = 2
-mainStroke.Color = Color3.fromRGB(180, 0, 255)
-mainStroke.Parent = main
+local mst = Instance.new("UIStroke")
+mst.Thickness = 2
+mst.Color = Color3.fromRGB(180, 0, 255)
+mst.Parent = main
 
 -- TOP BAR
-local topbar = Instance.new("Frame")
-topbar.Size = UDim2.new(1, 0, 0, 50)
-topbar.BackgroundColor3 = Color3.fromRGB(26, 22, 38)
-topbar.BorderSizePixel = 0
-topbar.Parent = main
+local tb = Instance.new("Frame")
+tb.Size = UDim2.new(1, 0, 0, 50)
+tb.BackgroundColor3 = Color3.fromRGB(26, 22, 38)
+tb.BorderSizePixel = 0
+tb.Parent = main
 
-local topbarCorner = Instance.new("UICorner")
-topbarCorner.CornerRadius = UDim.new(0, 14)
-topbarCorner.Parent = topbar
+local tbcr = Instance.new("UICorner")
+tbcr.CornerRadius = UDim.new(0, 14)
+tbcr.Parent = tb
 
-local topbarFix = Instance.new("Frame")
-topbarFix.Size = UDim2.new(1, 0, 0, 14)
-topbarFix.Position = UDim2.new(0, 0, 1, -14)
-topbarFix.BackgroundColor3 = Color3.fromRGB(26, 22, 38)
-topbarFix.BorderSizePixel = 0
-topbarFix.Parent = topbar
+local tbfix = Instance.new("Frame")
+tbfix.Size = UDim2.new(1, 0, 0, 14)
+tbfix.Position = UDim2.new(0, 0, 1, -14)
+tbfix.BackgroundColor3 = Color3.fromRGB(26, 22, 38)
+tbfix.BorderSizePixel = 0
+tbfix.Parent = tb
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -80, 1, 0)
-titleLabel.Position = UDim2.new(0, 18, 0, 0)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Font = Enum.Font.GothamBlack
-titleLabel.Text = "YINETSU HUB"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 20
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = topbar
+local mtitle = Instance.new("TextLabel")
+mtitle.Size = UDim2.new(1, -80, 1, 0)
+mtitle.Position = UDim2.new(0, 18, 0, 0)
+mtitle.BackgroundTransparency = 1
+mtitle.Font = Enum.Font.GothamBlack
+mtitle.Text = "YINETSU HUB"
+mtitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+mtitle.TextSize = 20
+mtitle.TextXAlignment = Enum.TextXAlignment.Left
+mtitle.Parent = tb
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 34, 0, 34)
-closeBtn.Position = UDim2.new(1, -42, 0.5, -17)
-closeBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 80)
-closeBtn.Text = "X"
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize = 16
-closeBtn.BorderSizePixel = 0
-closeBtn.Parent = topbar
+local cbtn = Instance.new("TextButton")
+cbtn.Size = UDim2.new(0, 34, 0, 34)
+cbtn.Position = UDim2.new(1, -42, 0.5, -17)
+cbtn.BackgroundColor3 = Color3.fromRGB(220, 60, 80)
+cbtn.Text = "X"
+cbtn.Font = Enum.Font.GothamBold
+cbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+cbtn.TextSize = 16
+cbtn.BorderSizePixel = 0
+cbtn.Parent = tb
 
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 10)
-closeCorner.Parent = closeBtn
+local ccr = Instance.new("UICorner")
+ccr.CornerRadius = UDim.new(0, 10)
+ccr.Parent = cbtn
 
-closeBtn.MouseButton1Click:Connect(function()
-    screenGui.Enabled = false
+cbtn.MouseButton1Click:Connect(function()
+    sg.Enabled = false
 end)
 
 -- DRAG
-local dragging = false
-local dragStart, startPos
-topbar.InputBegan:Connect(function(input)
+local dragg = false
+local dstart, spos
+tb.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = main.Position
+        dragg = true
+        dstart = input.Position
+        spos = main.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragg = false end
         end)
     end
 end)
 UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    if dragg and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local d = input.Position - dstart
+        main.Position = UDim2.new(spos.X.Scale, spos.X.Offset + d.X, spos.Y.Scale, spos.Y.Offset + d.Y)
     end
 end)
 
--- BIG +1 SPEED BUTTON
-local speedBtn = Instance.new("TextButton")
-speedBtn.Size = UDim2.new(1, -30, 0, 90)
-speedBtn.Position = UDim2.new(0, 15, 0, 65)
-speedBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
-speedBtn.Text = "+1 SPEED  ⚡"
-speedBtn.Font = Enum.Font.GothamBlack
-speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBtn.TextSize = 24
-speedBtn.BorderSizePixel = 0
-speedBtn.Parent = main
+-- +1 SPEED BUTTON
+local sbtn = Instance.new("TextButton")
+sbtn.Size = UDim2.new(1, -30, 0, 90)
+sbtn.Position = UDim2.new(0, 15, 0, 65)
+sbtn.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+sbtn.Text = "+1 SPEED  ⚡"
+sbtn.Font = Enum.Font.GothamBlack
+sbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+sbtn.TextSize = 24
+sbtn.BorderSizePixel = 0
+sbtn.Parent = main
 
-local speedCorner = Instance.new("UICorner")
-speedCorner.CornerRadius = UDim.new(0, 12)
-speedCorner.Parent = speedBtn
+local sscr = Instance.new("UICorner")
+sscr.CornerRadius = UDim.new(0, 12)
+sscr.Parent = sbtn
 
-local speedStroke = Instance.new("UIStroke")
-speedStroke.Thickness = 2
-speedStroke.Color = Color3.fromRGB(255, 100, 255)
-speedStroke.Parent = speedBtn
+local sst = Instance.new("UIStroke")
+sst.Thickness = 2
+sst.Color = Color3.fromRGB(255, 100, 255)
+sst.Parent = sbtn
 
-local baseSpeed = 16
-local bonus = 0
+local base = 16
+local bn = 0
 
-local function addSpeed()
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        bonus = bonus + 1
-        hum.WalkSpeed = baseSpeed + bonus
-        speedBtn.Text = "+1 SPEED  ⚡   Bonus: +" .. bonus
+local function addspeed()
+    local c = LocalPlayer.Character
+    local h = c and c:FindFirstChildOfClass("Humanoid")
+    if h then
+        bn = bn + 1
+        h.WalkSpeed = base + bn
+        sbtn.Text = "+1 SPEED  ⚡   Bonus: +" .. bn
     end
 end
 
-speedBtn.MouseButton1Click:Connect(addSpeed)
+sbtn.MouseButton1Click:Connect(addspeed)
 
--- INFO LABEL
-local infoLabel = Instance.new("TextLabel")
-infoLabel.Size = UDim2.new(1, -30, 0, 25)
-infoLabel.Position = UDim2.new(0, 15, 0, 165)
-infoLabel.BackgroundTransparency = 1
-infoLabel.Font = Enum.Font.Gotham
-infoLabel.Text = "Tap button or press E to add +1 walkspeed"
-infoLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
-infoLabel.TextSize = 13
-infoLabel.Parent = main
+-- INFO
+local inf = Instance.new("TextLabel")
+inf.Size = UDim2.new(1, -30, 0, 25)
+inf.Position = UDim2.new(0, 15, 0, 165)
+inf.BackgroundTransparency = 1
+inf.Font = Enum.Font.Gotham
+inf.Text = "Tap button or press E to add +1 walkspeed"
+inf.TextColor3 = Color3.fromRGB(200, 200, 220)
+inf.TextSize = 13
+inf.Parent = main
 
 -- RESET BUTTON
-local resetBtn = Instance.new("TextButton")
-resetBtn.Size = UDim2.new(1, -30, 0, 50)
-resetBtn.Position = UDim2.new(0, 15, 0, 195)
-resetBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-resetBtn.Text = "RESET SPEED BONUS"
-resetBtn.Font = Enum.Font.GothamBold
-resetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-resetBtn.TextSize = 15
-resetBtn.BorderSizePixel = 0
-resetBtn.Parent = main
+local rbtn = Instance.new("TextButton")
+rbtn.Size = UDim2.new(1, -30, 0, 50)
+rbtn.Position = UDim2.new(0, 15, 0, 195)
+rbtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+rbtn.Text = "RESET SPEED BONUS"
+rbtn.Font = Enum.Font.GothamBold
+rbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+rbtn.TextSize = 15
+rbtn.BorderSizePixel = 0
+rbtn.Parent = main
 
-local resetCorner = Instance.new("UICorner")
-resetCorner.CornerRadius = UDim.new(0, 10)
-resetCorner.Parent = resetBtn
+local rcr = Instance.new("UICorner")
+rcr.CornerRadius = UDim.new(0, 10)
+rcr.Parent = rbtn
 
-resetBtn.MouseButton1Click:Connect(function()
-    bonus = 0
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    if hum then hum.WalkSpeed = baseSpeed end
-    speedBtn.Text = "+1 SPEED  ⚡"
-end)
-
--- RGB ANIMATION sa main GUI
-task.spawn(function()
-    while screenGui.Parent do
-        local c = Color3.fromHSV(hue, 0.9, 1)
-        mainStroke.Color = c
-        speedStroke.Color = c
-        task.wait(0.03)
-    end
+rbtn.MouseButton1Click:Connect(function()
+    bn = 0
+    local c = LocalPlayer.Character
+    local h = c and c:FindFirstChildOfClass("Humanoid")
+    if h then h.WalkSpeed = base end
+    sbtn.Text = "+1 SPEED  ⚡"
 end)
 
 -- KEYBOARD E
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
-    if input.KeyCode == Enum.KeyCode.E then
-        addSpeed()
-    end
+    if input.KeyCode == Enum.KeyCode.E then addspeed() end
 end)
 
--- ==============================================
+-- ============================================
 -- FLOATING BUTTON
--- ==============================================
-local floatGui = Instance.new("ScreenGui")
-floatGui.Name = "YinetsuFloat"
-floatGui.ResetOnSpawn = false
-floatGui.DisplayOrder = 10000
-floatGui.Parent = CoreGui
+-- ============================================
+local fg = Instance.new("ScreenGui")
+fg.Name = "YinetsuFloat"
+fg.ResetOnSpawn = false
+fg.DisplayOrder = 10000
+fg.Parent = CoreGui
 
-local floatBtn = Instance.new("TextButton")
-floatBtn.Size = UDim2.new(0, 65, 0, 65)
-floatBtn.Position = UDim2.new(0, 20, 0.5, -32)
-floatBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
-floatBtn.Text = "Y"
-floatBtn.Font = Enum.Font.GothamBlack
-floatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-floatBtn.TextSize = 28
-floatBtn.BorderSizePixel = 0
-floatBtn.Active = true
-floatBtn.Parent = floatGui
+local fbtn = Instance.new("TextButton")
+fbtn.Size = UDim2.new(0, 65, 0, 65)
+fbtn.Position = UDim2.new(0, 20, 0.5, -32)
+fbtn.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+fbtn.Text = "Y"
+fbtn.Font = Enum.Font.GothamBlack
+fbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+fbtn.TextSize = 28
+fbtn.BorderSizePixel = 0
+fbtn.Active = true
+fbtn.Parent = fg
 
-local floatCorner = Instance.new("UICorner")
-floatCorner.CornerRadius = UDim.new(1, 0)
-floatCorner.Parent = floatBtn
+local fcr = Instance.new("UICorner")
+fcr.CornerRadius = UDim.new(1, 0)
+fcr.Parent = fbtn
 
-local floatStroke = Instance.new("UIStroke")
-floatStroke.Thickness = 3
-floatStroke.Color = Color3.fromRGB(180, 0, 255)
-floatStroke.Parent = floatBtn
+local fst = Instance.new("UIStroke")
+fst.Thickness = 3
+fst.Color = Color3.fromRGB(180, 0, 255)
+fst.Parent = fbtn
 
--- Float drag
-local fDragging = false
-local fDragStart, fStartPos
-floatBtn.InputBegan:Connect(function(input)
+local fdrag = false
+local fdstart, fspos
+fbtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        fDragging = true
-        fDragStart = input.Position
-        fStartPos = floatBtn.Position
+        fdrag = true
+        fdstart = input.Position
+        fspos = fbtn.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                fDragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then fdrag = false end
         end)
     end
 end)
 UserInputService.InputChanged:Connect(function(input)
-    if fDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - fDragStart
-        floatBtn.Position = UDim2.new(fStartPos.X.Scale, fStartPos.X.Offset + delta.X, fStartPos.Y.Scale, fStartPos.Y.Offset + delta.Y)
+    if fdrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local d = input.Position - fdstart
+        fbtn.Position = UDim2.new(fspos.X.Scale, fspos.X.Offset + d.X, fspos.Y.Scale, fspos.Y.Offset + d.Y)
     end
 end)
 
-floatBtn.MouseButton1Click:Connect(function()
-    screenGui.Enabled = not screenGui.Enabled
+fbtn.MouseButton1Click:Connect(function()
+    sg.Enabled = not sg.Enabled
 end)
 
+-- ============================================
+-- RGB LOOP + DESTROY LOADING
+-- ============================================
 task.spawn(function()
-    while floatGui.Parent do
-        floatStroke.Color = Color3.fromHSV(hue, 0.9, 1)
+    while sg.Parent do
+        local c = Color3.fromHSV(hue, 0.9, 1)
+        mst.Color = c
+        sst.Color = c
+        fst.Color = c
         task.wait(0.03)
     end
 end)
 
-print("[YINETSU] Loaded!")
+task.spawn(function()
+    task.wait(2)
+    if loadingGui then loadingGui:Destroy() end
+end)
+
+print("[YINETSU] LOADED!")
