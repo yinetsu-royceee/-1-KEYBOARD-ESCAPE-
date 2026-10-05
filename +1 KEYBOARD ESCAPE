@@ -1,34 +1,12 @@
---[[
-    YINETSU HUB - +1 SPEED KEYBOARD ESCAPE
-    Box Loading Screen + RGB | Mobile Edition
-]]
-
+-- YINETSU HUB - WORKING SIMPLE VERSION
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-local IS_MOBILE = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-
---==============================================================
--- RGB COLOR
---==============================================================
-local hue = 0
-local function rgbColor(offset)
-    return Color3.fromHSV((hue + (offset or 0)) % 1, 0.9, 1)
-end
-task.spawn(function()
-    while true do
-        hue = (hue + 0.005) % 1
-        RunService.RenderStepped:Wait()
-    end
-end)
-
---==============================================================
--- LOADING SCREEN (BOX with RGB)
---==============================================================
+-- ==============================================
+-- LOADING SCREEN (BOX na may RGB)
+-- ==============================================
 local loadingGui = Instance.new("ScreenGui")
 loadingGui.Name = "YinetsuLoading"
 loadingGui.IgnoreGuiInset = true
@@ -36,185 +14,97 @@ loadingGui.ResetOnSpawn = false
 loadingGui.DisplayOrder = 99999
 loadingGui.Parent = CoreGui
 
--- Dim background
-local dim = Instance.new("Frame")
-dim.Size = UDim2.new(1, 0, 1, 0)
-dim.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-dim.BackgroundTransparency = 0.5
-dim.BorderSizePixel = 0
-dim.Parent = loadingGui
-
--- LOADING BOX
-local box = Instance.new("Frame")
-box.Size = UDim2.new(0, IS_MOBILE and 320 or 420, 0, IS_MOBILE and 260 or 280)
-box.Position = UDim2.new(0.5, -(IS_MOBILE and 160 or 210), 0.5, -(IS_MOBILE and 130 or 140))
-box.BackgroundColor3 = Color3.fromRGB(15, 12, 25)
-box.BorderSizePixel = 0
-box.Parent = dim
+local loadingBox = Instance.new("Frame")
+loadingBox.Size = UDim2.new(0, 300, 0, 200)
+loadingBox.Position = UDim2.new(0.5, -150, 0.5, -100)
+loadingBox.BackgroundColor3 = Color3.fromRGB(15, 12, 25)
+loadingBox.BorderSizePixel = 0
+loadingBox.Parent = loadingGui
 
 local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0, 16)
-boxCorner.Parent = box
+boxCorner.CornerRadius = UDim.new(0, 14)
+boxCorner.Parent = loadingBox
 
--- RGB STROKE (glowing border)
 local boxStroke = Instance.new("UIStroke")
 boxStroke.Thickness = 3
-boxStroke.Color = rgbColor(0)
-boxStroke.Parent = box
+boxStroke.Color = Color3.fromRGB(180, 0, 255)
+boxStroke.Parent = loadingBox
 
--- RGB GRADIENT background
-local boxGrad = Instance.new("UIGradient")
-boxGrad.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 35)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 15, 45)),
-}
-boxGrad.Rotation = 45
-boxGrad.Parent = box
+local titleLoad = Instance.new("TextLabel")
+titleLoad.Size = UDim2.new(1, 0, 0, 40)
+titleLoad.Position = UDim2.new(0, 0, 0, 20)
+titleLoad.BackgroundTransparency = 1
+titleLoad.Font = Enum.Font.GothamBlack
+titleLoad.Text = "YINETSU HUB"
+titleLoad.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLoad.TextSize = 28
+titleLoad.Parent = loadingBox
 
--- TITLE
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 50)
-title.Position = UDim2.new(0, 0, 0, 20)
-title.BackgroundTransparency = 1
-title.Font = Enum.Font.GothamBlack
-title.Text = "YINETSU HUB"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = IS_MOBILE and 32 or 40
-title.Parent = box
+local welcomeLoad = Instance.new("TextLabel")
+welcomeLoad.Size = UDim2.new(1, 0, 0, 25)
+welcomeLoad.Position = UDim2.new(0, 0, 0, 65)
+welcomeLoad.BackgroundTransparency = 1
+welcomeLoad.Font = Enum.Font.GothamBold
+welcomeLoad.Text = "WELCOME, " .. string.upper(LocalPlayer.DisplayName)
+welcomeLoad.TextColor3 = Color3.fromRGB(200, 200, 255)
+welcomeLoad.TextSize = 14
+welcomeLoad.Parent = loadingBox
 
--- SUBTITLE
-local sub = Instance.new("TextLabel")
-sub.Size = UDim2.new(1, 0, 0, 20)
-sub.Position = UDim2.new(0, 0, 0, 68)
-sub.BackgroundTransparency = 1
-sub.Font = Enum.Font.GothamBold
-sub.Text = "◆  +1 SPEED KEYBOARD ESCAPE  ◆"
-sub.TextColor3 = Color3.fromRGB(180, 180, 255)
-sub.TextSize = IS_MOBILE and 11 or 13
-sub.Parent = box
+local statusLoad = Instance.new("TextLabel")
+statusLoad.Size = UDim2.new(1, 0, 0, 20)
+statusLoad.Position = UDim2.new(0, 0, 0, 120)
+statusLoad.BackgroundTransparency = 1
+statusLoad.Font = Enum.Font.Gotham
+statusLoad.Text = "Loading..."
+statusLoad.TextColor3 = Color3.fromRGB(180, 180, 200)
+statusLoad.TextSize = 12
+statusLoad.Parent = loadingBox
 
--- AVATAR
-local avSize = IS_MOBILE and 70 or 85
-local avatarFrame = Instance.new("Frame")
-avatarFrame.Size = UDim2.new(0, avSize, 0, avSize)
-avatarFrame.Position = UDim2.new(0.5, -avSize/2, 0, 100)
-avatarFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-avatarFrame.BorderSizePixel = 0
-avatarFrame.Parent = box
+local barBgLoad = Instance.new("Frame")
+barBgLoad.Size = UDim2.new(1, -40, 0, 8)
+barBgLoad.Position = UDim2.new(0, 20, 0, 160)
+barBgLoad.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+barBgLoad.BorderSizePixel = 0
+barBgLoad.Parent = loadingBox
 
-local avCorner = Instance.new("UICorner")
-avCorner.CornerRadius = UDim.new(1, 0)
-avCorner.Parent = avatarFrame
+local barBgCornerLoad = Instance.new("UICorner")
+barBgCornerLoad.CornerRadius = UDim.new(1, 0)
+barBgCornerLoad.Parent = barBgLoad
 
-local avStroke = Instance.new("UIStroke")
-avStroke.Thickness = 3
-avStroke.Color = rgbColor(0.3)
-avStroke.Parent = avatarFrame
+local barFillLoad = Instance.new("Frame")
+barFillLoad.Size = UDim2.new(0, 0, 1, 0)
+barFillLoad.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+barFillLoad.BorderSizePixel = 0
+barFillLoad.Parent = barBgLoad
 
-local avImg = Instance.new("ImageLabel")
-avImg.Size = UDim2.new(1, -6, 1, -6)
-avImg.Position = UDim2.new(0, 3, 0, 3)
-avImg.BackgroundTransparency = 1
-avImg.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420"
-avImg.Parent = avatarFrame
+local barFillCornerLoad = Instance.new("UICorner")
+barFillCornerLoad.CornerRadius = UDim.new(1, 0)
+barFillCornerLoad.Parent = barFillLoad
 
-local avImgCorner = Instance.new("UICorner")
-avImgCorner.CornerRadius = UDim.new(1, 0)
-avImgCorner.Parent = avImg
-
--- WELCOME TEXT
-local welcome = Instance.new("TextLabel")
-welcome.Size = UDim2.new(1, 0, 0, 25)
-welcome.Position = UDim2.new(0, 0, 0, 100 + avSize + 8)
-welcome.BackgroundTransparency = 1
-welcome.Font = Enum.Font.GothamBold
-welcome.Text = "WELCOME, " .. string.upper(LocalPlayer.DisplayName)
-welcome.TextColor3 = Color3.fromRGB(255, 255, 255)
-welcome.TextSize = IS_MOBILE and 14 or 16
-welcome.Parent = box
-
--- STATUS TEXT
-local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, 0, 0, 18)
-status.Position = UDim2.new(0, 0, 1, -50)
-status.BackgroundTransparency = 1
-status.Font = Enum.Font.Gotham
-status.Text = "Loading..."
-status.TextColor3 = Color3.fromRGB(180, 180, 200)
-status.TextSize = IS_MOBILE and 12 or 13
-status.Parent = box
-
--- PROGRESS BAR
-local barBg = Instance.new("Frame")
-barBg.Size = UDim2.new(1, -40, 0, 8)
-barBg.Position = UDim2.new(0, 20, 1, -28)
-barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-barBg.BorderSizePixel = 0
-barBg.Parent = box
-
-local barBgCorner = Instance.new("UICorner")
-barBgCorner.CornerRadius = UDim.new(1, 0)
-barBgCorner.Parent = barBg
-
-local barFill = Instance.new("Frame")
-barFill.Size = UDim2.new(0, 0, 1, 0)
-barFill.BackgroundColor3 = rgbColor(0)
-barFill.BorderSizePixel = 0
-barFill.Parent = barBg
-
-local barFillCorner = Instance.new("UICorner")
-barFillCorner.CornerRadius = UDim.new(1, 0)
-barFillCorner.Parent = barFill
-
--- RGB ANIMATION on loading screen
+-- RGB animation sa loading
+local hue = 0
 task.spawn(function()
     while loadingGui.Parent do
-        local c = rgbColor(0)
+        hue = (hue + 0.01) % 1
+        local c = Color3.fromHSV(hue, 0.9, 1)
         boxStroke.Color = c
-        avStroke.Color = rgbColor(0.3)
-        barFill.BackgroundColor3 = rgbColor(0.5)
-        title.TextColor3 = Color3.fromRGB(255, 255, 255)
-        RunService.RenderStepped:Wait()
+        barFillLoad.BackgroundColor3 = c
+        task.wait(0.03)
     end
 end)
 
--- LOADING STEPS
-local steps = {
-    {text = "Loading modules...", progress = 0.25},
-    {text = "Fetching avatar...", progress = 0.5},
-    {text = "Bypassing anti-cheat...", progress = 0.75},
-    {text = "Welcome, " .. LocalPlayer.DisplayName .. "!", progress = 1},
-}
-
-for _, step in ipairs(steps) do
-    status.Text = step.text
-    TweenService:Create(barFill, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {
-        Size = UDim2.new(step.progress, 0, 1, 0)
-    }):Play()
-    task.wait(0.5)
+-- Animate bar
+for i = 1, 20 do
+    barFillLoad.Size = UDim2.new(i/20, 0, 1, 0)
+    task.wait(0.08)
 end
 
-task.wait(0.4)
-
--- FADE OUT box
-TweenService:Create(dim, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-TweenService:Create(box, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-TweenService:Create(boxStroke, TweenInfo.new(0.5), {Transparency = 1}):Play()
-for _, v in ipairs(box:GetDescendants()) do
-    if v:IsA("TextLabel") or v:IsA("ImageLabel") then
-        TweenService:Create(v, TweenInfo.new(0.5), {TextTransparency = 1, ImageTransparency = 1}):Play()
-    elseif v:IsA("Frame") then
-        TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-    elseif v:IsA("UIStroke") then
-        TweenService:Create(v, TweenInfo.new(0.5), {Transparency = 1}):Play()
-    end
-end
-task.wait(0.6)
+task.wait(0.3)
 loadingGui:Destroy()
 
---==============================================================
--- MAIN GUI
---==============================================================
+-- ==============================================
+-- MAIN GUI (AGAD-AGAD PAGKATAPOS NG LOADING)
+-- ==============================================
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "YinetsuHub"
 screenGui.ResetOnSpawn = false
@@ -222,8 +112,8 @@ screenGui.DisplayOrder = 9999
 screenGui.Parent = CoreGui
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0.9, 0, 0.6, 0)
-main.Position = UDim2.new(0.05, 0, 0.2, 0)
+main.Size = UDim2.new(0.9, 0, 0.5, 0)
+main.Position = UDim2.new(0.05, 0, 0.25, 0)
 main.BackgroundColor3 = Color3.fromRGB(18, 15, 28)
 main.BorderSizePixel = 0
 main.Active = true
@@ -235,7 +125,7 @@ mainCorner.Parent = main
 
 local mainStroke = Instance.new("UIStroke")
 mainStroke.Thickness = 2
-mainStroke.Color = rgbColor(0)
+mainStroke.Color = Color3.fromRGB(180, 0, 255)
 mainStroke.Parent = main
 
 -- TOP BAR
@@ -263,7 +153,7 @@ titleLabel.BackgroundTransparency = 1
 titleLabel.Font = Enum.Font.GothamBlack
 titleLabel.Text = "YINETSU HUB"
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = IS_MOBILE and 20 or 22
+titleLabel.TextSize = 20
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = topbar
 
@@ -271,7 +161,7 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 34, 0, 34)
 closeBtn.Position = UDim2.new(1, -42, 0.5, -17)
 closeBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 80)
-closeBtn.Text = "✕"
+closeBtn.Text = "X"
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.TextSize = 16
@@ -308,23 +198,17 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- CONTENT
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -20, 1, -70)
-content.Position = UDim2.new(0, 10, 0, 60)
-content.BackgroundTransparency = 1
-content.Parent = main
-
 -- BIG +1 SPEED BUTTON
 local speedBtn = Instance.new("TextButton")
-speedBtn.Size = UDim2.new(1, 0, 0, 90)
+speedBtn.Size = UDim2.new(1, -30, 0, 90)
+speedBtn.Position = UDim2.new(0, 15, 0, 65)
 speedBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
 speedBtn.Text = "+1 SPEED  ⚡"
 speedBtn.Font = Enum.Font.GothamBlack
 speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBtn.TextSize = IS_MOBILE and 22 or 26
+speedBtn.TextSize = 24
 speedBtn.BorderSizePixel = 0
-speedBtn.Parent = content
+speedBtn.Parent = main
 
 local speedCorner = Instance.new("UICorner")
 speedCorner.CornerRadius = UDim.new(0, 12)
@@ -332,10 +216,9 @@ speedCorner.Parent = speedBtn
 
 local speedStroke = Instance.new("UIStroke")
 speedStroke.Thickness = 2
-speedStroke.Color = rgbColor(0.5)
+speedStroke.Color = Color3.fromRGB(255, 100, 255)
 speedStroke.Parent = speedBtn
 
--- SPEED VARIABLES
 local baseSpeed = 16
 local bonus = 0
 
@@ -353,26 +236,26 @@ speedBtn.MouseButton1Click:Connect(addSpeed)
 
 -- INFO LABEL
 local infoLabel = Instance.new("TextLabel")
-infoLabel.Size = UDim2.new(1, 0, 0, 25)
-infoLabel.Position = UDim2.new(0, 0, 0, 100)
+infoLabel.Size = UDim2.new(1, -30, 0, 25)
+infoLabel.Position = UDim2.new(0, 15, 0, 165)
 infoLabel.BackgroundTransparency = 1
 infoLabel.Font = Enum.Font.Gotham
-infoLabel.Text = IS_MOBILE and "Tap the button to add +1 walkspeed" or "Press [E] or tap button for +1 walkspeed"
+infoLabel.Text = "Tap button or press E to add +1 walkspeed"
 infoLabel.TextColor3 = Color3.fromRGB(200, 200, 220)
 infoLabel.TextSize = 13
-infoLabel.Parent = content
+infoLabel.Parent = main
 
 -- RESET BUTTON
 local resetBtn = Instance.new("TextButton")
-resetBtn.Size = UDim2.new(1, 0, 0, 50)
-resetBtn.Position = UDim2.new(0, 0, 0, 135)
+resetBtn.Size = UDim2.new(1, -30, 0, 50)
+resetBtn.Position = UDim2.new(0, 15, 0, 195)
 resetBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-resetBtn.Text = "🔄  RESET SPEED BONUS"
+resetBtn.Text = "RESET SPEED BONUS"
 resetBtn.Font = Enum.Font.GothamBold
 resetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 resetBtn.TextSize = 15
 resetBtn.BorderSizePixel = 0
-resetBtn.Parent = content
+resetBtn.Parent = main
 
 local resetCorner = Instance.new("UICorner")
 resetCorner.CornerRadius = UDim.new(0, 10)
@@ -386,47 +269,13 @@ resetBtn.MouseButton1Click:Connect(function()
     speedBtn.Text = "+1 SPEED  ⚡"
 end)
 
--- INFO PARAGRAPH
-local infoBox = Instance.new("Frame")
-infoBox.Size = UDim2.new(1, 0, 0, 60)
-infoBox.Position = UDim2.new(0, 0, 0, 195)
-infoBox.BackgroundColor3 = Color3.fromRGB(28, 24, 42)
-infoBox.BorderSizePixel = 0
-infoBox.Parent = content
-
-local infoCorner = Instance.new("UICorner")
-infoCorner.CornerRadius = UDim.new(0, 10)
-infoCorner.Parent = infoBox
-
-local infoTitle = Instance.new("TextLabel")
-infoTitle.Size = UDim2.new(1, -20, 0, 18)
-infoTitle.Position = UDim2.new(0, 10, 0, 6)
-infoTitle.BackgroundTransparency = 1
-infoTitle.Font = Enum.Font.GothamBold
-infoTitle.Text = "BYPASS ACTIVE"
-infoTitle.TextColor3 = rgbColor(0)
-infoTitle.TextSize = 12
-infoTitle.TextXAlignment = Enum.TextXAlignment.Left
-infoTitle.Parent = infoBox
-
-local infoText = Instance.new("TextLabel")
-infoText.Size = UDim2.new(1, -20, 0, 30)
-infoText.Position = UDim2.new(0, 10, 0, 24)
-infoText.BackgroundTransparency = 1
-infoText.Font = Enum.Font.Gotham
-infoText.Text = "NPCs & traps disabled. Godmode enabled."
-infoText.TextColor3 = Color3.fromRGB(180, 180, 200)
-infoText.TextSize = 12
-infoText.TextXAlignment = Enum.TextXAlignment.Left
-infoText.Parent = infoBox
-
--- RGB ANIMATION on main GUI
+-- RGB ANIMATION sa main GUI
 task.spawn(function()
     while screenGui.Parent do
-        mainStroke.Color = rgbColor(0)
-        speedStroke.Color = rgbColor(0.5)
-        infoTitle.TextColor3 = rgbColor(0.3)
-        RunService.RenderStepped:Wait()
+        local c = Color3.fromHSV(hue, 0.9, 1)
+        mainStroke.Color = c
+        speedStroke.Color = c
+        task.wait(0.03)
     end
 end)
 
@@ -438,9 +287,9 @@ UserInputService.InputBegan:Connect(function(input, gp)
     end
 end)
 
---==============================================================
+-- ==============================================
 -- FLOATING BUTTON
---==============================================================
+-- ==============================================
 local floatGui = Instance.new("ScreenGui")
 floatGui.Name = "YinetsuFloat"
 floatGui.ResetOnSpawn = false
@@ -448,13 +297,13 @@ floatGui.DisplayOrder = 10000
 floatGui.Parent = CoreGui
 
 local floatBtn = Instance.new("TextButton")
-floatBtn.Size = UDim2.new(0, IS_MOBILE and 65 or 60, 0, IS_MOBILE and 65 or 60)
-floatBtn.Position = UDim2.new(0, 20, 0.5, -30)
+floatBtn.Size = UDim2.new(0, 65, 0, 65)
+floatBtn.Position = UDim2.new(0, 20, 0.5, -32)
 floatBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
 floatBtn.Text = "Y"
 floatBtn.Font = Enum.Font.GothamBlack
 floatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-floatBtn.TextSize = IS_MOBILE and 30 or 28
+floatBtn.TextSize = 28
 floatBtn.BorderSizePixel = 0
 floatBtn.Active = true
 floatBtn.Parent = floatGui
@@ -465,7 +314,7 @@ floatCorner.Parent = floatBtn
 
 local floatStroke = Instance.new("UIStroke")
 floatStroke.Thickness = 3
-floatStroke.Color = rgbColor(0)
+floatStroke.Color = Color3.fromRGB(180, 0, 255)
 floatStroke.Parent = floatBtn
 
 -- Float drag
@@ -494,12 +343,11 @@ floatBtn.MouseButton1Click:Connect(function()
     screenGui.Enabled = not screenGui.Enabled
 end)
 
--- RGB animation on float button
 task.spawn(function()
     while floatGui.Parent do
-        floatStroke.Color = rgbColor(0)
-        RunService.RenderStepped:Wait()
+        floatStroke.Color = Color3.fromHSV(hue, 0.9, 1)
+        task.wait(0.03)
     end
 end)
 
-print("[YINETSU HUB] Loaded successfully!")
+print("[YINETSU] Loaded!")
