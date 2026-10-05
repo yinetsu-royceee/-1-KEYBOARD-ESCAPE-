@@ -5,7 +5,7 @@
       ╚██╔╝  ██║██║╚██╗██║██╔══╝     ██║   ╚════██║██║   ██║    ██╔══██║██║   ██║██╔══██╗
        ██║   ██║██║ ╚████║███████╗   ██║   ███████║╚██████╔╝    ██║  ██║╚██████╔╝██████╔╝
        ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚══════╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝
-                 ULTRA SMOOTH CUSTOM GUI | MOBILE EDITION | +1 SPEED ESCAPE
+              LOADING FIRST → THEN GUI | MOBILE EDITION | +1 SPEED ESCAPE
 ]]
 
 local Players = game:GetService("Players")
@@ -27,18 +27,17 @@ local function safeParent(gui)
 end
 
 --==============================================================
--- EASING PRESETS (premium feel)
+-- EASING PRESETS
 --==============================================================
 local EASE = {
-    SMOOTH   = TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-    FAST     = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    SLOW     = TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-    SPRING   = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-    SOFT     = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+    SMOOTH = TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+    FAST   = TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    SPRING = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    SOFT   = TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
 }
 
 --==============================================================
--- RGB SHARED
+-- RGB
 --==============================================================
 local hue = 0
 local function rgbColor(offset)
@@ -75,55 +74,39 @@ local function tween(obj, info, props)
     return t
 end
 
--- Universal drag with tilt effect
 local function makeDraggable(frame, dragHandle, tilt)
     dragHandle = dragHandle or frame
     local dragging, dragInput, dragStart, startPos
-
     local function update(input)
         local delta = input.Position - dragStart
-        frame.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )
-        if tilt and frame:FindFirstChildWhichIsA("UIGradient") then
-            local g = frame:FindFirstChildWhichIsA("UIGradient")
-            g.Rotation = math.clamp(delta.X * 0.3, -15, 15) + 90
-        end
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-
     dragHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
-            if tilt then
-                tween(frame, EASE.FAST, {Rotation = 2})
-            end
+            if tilt then tween(frame, EASE.FAST, {Rotation = 2}) end
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
-                    if tilt then
-                        tween(frame, EASE.SPRING, {Rotation = 0})
-                    end
+                    if tilt then tween(frame, EASE.SPRING, {Rotation = 0}) end
                 end
             end)
         end
     end)
-
     dragHandle.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then update(input) end
     end)
 end
 
 --==============================================================
--- BYPASSES (background)
+-- BYPASSES
 --==============================================================
 task.spawn(function()
     local oldNewIndex
@@ -136,21 +119,18 @@ task.spawn(function()
         end
         return oldNewIndex(self, key, value)
     end)
-
     local npcZoneTags = {"NPC9_Zone","NPC10_AttackZone","NPC12_LabyrinthZone","NPC15_Zone","NPC15_SpeedZone","MacaronMonster_AttackZone"}
     local function destroyZone(inst) if inst and inst.Parent then inst:Destroy() end end
     for _, tag in ipairs(npcZoneTags) do
         for _, inst in ipairs(CollectionService:GetTagged(tag)) do destroyZone(inst) end
         CollectionService:GetInstanceAddedSignal(tag):Connect(function(inst) task.defer(destroyZone, inst) end)
     end
-
     local npcNames = {["NPC9"]=true,["NPC10"]=true,["NPC12"]=true,["NPC15"]=true,["NPC_MacaronMonster"]=true}
     local function handleWorkspaceDescendant(desc)
         if npcNames[desc.Name] then task.defer(function() if desc.Parent then desc:Destroy() end end) end
     end
     for _, desc in ipairs(workspace:GetDescendants()) do handleWorkspaceDescendant(desc) end
     workspace.DescendantAdded:Connect(handleWorkspaceDescendant)
-
     local trapTags = {"CrushTrap","LavaTrap","MovingWallModel","TsunamiModel"}
     local function disableTrapPart(part)
         if part:IsA("BasePart") then
@@ -223,15 +203,15 @@ local function startFarm()
                     local distance = (hrp.Position - targetPos).Magnitude
                     local duration = distance / speed
                     local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-                    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos)})
-                    tween:Play()
+                    local tw = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos)})
+                    tw:Play()
                     local completed = false
                     local conn
-                    conn = tween.Completed:Connect(function() completed = true end)
+                    conn = tw.Completed:Connect(function() completed = true end)
                     while not completed and autoFarmActive do
                         task.wait()
                         if not hrp or not hrp.Parent or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then
-                            tween:Cancel(); if conn then conn:Disconnect() end; break
+                            tw:Cancel(); if conn then conn:Disconnect() end; break
                         end
                     end
                     if conn then conn:Disconnect() end
@@ -283,7 +263,7 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 --==============================================================
--- COMPONENTS (with smooth animations)
+-- COMPONENTS
 --==============================================================
 local BTN_HEIGHT = IS_MOBILE and 48 or 40
 local ROW_HEIGHT = IS_MOBILE and 56 or 45
@@ -293,21 +273,12 @@ local function createToggle(parent, labelText, defaultVal, callback)
     local row = Instance.new("Frame")
     row.Size = UDim2.new(1, -16, 0, ROW_HEIGHT)
     row.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
-    row.BackgroundTransparency = 0
     row.BorderSizePixel = 0
     row.Parent = parent
     createCorner(row, 8)
     local rowStroke = createStroke(row, 1, Color3.fromRGB(50,50,70))
-
-    row.MouseEnter:Connect(function()
-        tween(rowStroke, EASE.FAST, {Color = rgbColor(0)})
-        tween(row, EASE.FAST, {BackgroundColor3 = Color3.fromRGB(28,28,38)})
-    end)
-    row.MouseLeave:Connect(function()
-        tween(rowStroke, EASE.FAST, {Color = Color3.fromRGB(50,50,70)})
-        tween(row, EASE.FAST, {BackgroundColor3 = Color3.fromRGB(22,22,30)})
-    end)
-
+    row.MouseEnter:Connect(function() tween(rowStroke, EASE.FAST, {Color = rgbColor(0)}) end)
+    row.MouseLeave:Connect(function() tween(rowStroke, EASE.FAST, {Color = Color3.fromRGB(50,50,70)}) end)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, -100, 1, 0)
     label.Position = UDim2.new(0, 15, 0, 0)
@@ -318,7 +289,6 @@ local function createToggle(parent, labelText, defaultVal, callback)
     label.TextSize = FONT_SIZE
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = row
-
     local tBtn = Instance.new("TextButton")
     tBtn.Size = UDim2.new(0, 56, 0, 30)
     tBtn.Position = UDim2.new(1, -68, 0.5, -15)
@@ -328,7 +298,6 @@ local function createToggle(parent, labelText, defaultVal, callback)
     tBtn.BorderSizePixel = 0
     tBtn.Parent = row
     createCorner(tBtn, 15)
-
     local knob = Instance.new("Frame")
     knob.Size = UDim2.new(0, 24, 0, 24)
     knob.Position = defaultVal and UDim2.new(1, -27, 0.5, -12) or UDim2.new(0, 3, 0.5, -12)
@@ -336,26 +305,13 @@ local function createToggle(parent, labelText, defaultVal, callback)
     knob.BorderSizePixel = 0
     knob.Parent = tBtn
     createCorner(knob, 12)
-
     local state = defaultVal
     tBtn.MouseButton1Click:Connect(function()
         state = not state
-        -- Smooth knob slide with slight overshoot
-        tween(knob, EASE.SPRING, {
-            Position = state and UDim2.new(1, -27, 0.5, -12) or UDim2.new(0, 3, 0.5, -12)
-        })
-        tween(tBtn, EASE.SMOOTH, {
-            BackgroundColor3 = state and rgbColor(0) or Color3.fromRGB(50,50,65)
-        })
-        -- Tap pulse
-        local oldSize = tBtn.Size
-        tween(tBtn, EASE.FAST, {Size = UDim2.new(0, 60, 0, 32)})
-        task.delay(0.15, function()
-            tween(tBtn, EASE.SPRING, {Size = oldSize})
-        end)
+        tween(knob, EASE.SPRING, {Position = state and UDim2.new(1, -27, 0.5, -12) or UDim2.new(0, 3, 0.5, -12)})
+        tween(tBtn, EASE.SMOOTH, {BackgroundColor3 = state and rgbColor(0) or Color3.fromRGB(50,50,65)})
         if callback then callback(state) end
     end)
-
     task.spawn(function()
         while row.Parent do
             if state then tBtn.BackgroundColor3 = rgbColor(0) end
@@ -373,10 +329,6 @@ local function createSlider(parent, labelText, min, max, default, suffix, callba
     row.Parent = parent
     createCorner(row, 8)
     local rowStroke = createStroke(row, 1, Color3.fromRGB(50,50,70))
-
-    row.MouseEnter:Connect(function() tween(rowStroke, EASE.FAST, {Color = rgbColor(0)}) end)
-    row.MouseLeave:Connect(function() tween(rowStroke, EASE.FAST, {Color = Color3.fromRGB(50,50,70)}) end)
-
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, -20, 0, 20)
     label.Position = UDim2.new(0, 15, 0, 8)
@@ -387,7 +339,6 @@ local function createSlider(parent, labelText, min, max, default, suffix, callba
     label.TextSize = FONT_SIZE
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = row
-
     local track = Instance.new("Frame")
     track.Size = UDim2.new(1, -30, 0, IS_MOBILE and 14 or 8)
     track.Position = UDim2.new(0, 15, 1, IS_MOBILE and -28 or -20)
@@ -395,14 +346,12 @@ local function createSlider(parent, labelText, min, max, default, suffix, callba
     track.BorderSizePixel = 0
     track.Parent = row
     createCorner(track, 7)
-
     local fill = Instance.new("Frame")
     fill.Size = UDim2.new((default - min)/(max - min), 0, 1, 0)
     fill.BackgroundColor3 = rgbColor(0)
     fill.BorderSizePixel = 0
     fill.Parent = track
     createCorner(fill, 7)
-
     local knobSz = IS_MOBILE and 24 or 16
     local knob = Instance.new("Frame")
     knob.Size = UDim2.new(0, knobSz, 0, knobSz)
@@ -411,45 +360,31 @@ local function createSlider(parent, labelText, min, max, default, suffix, callba
     knob.BorderSizePixel = 0
     knob.Parent = track
     createCorner(knob, knobSz/2)
-
-    local knobStroke = createStroke(knob, 0, rgbColor(0))
-
     local dragging = false
     local value = default
-    local baseKnobSz = knobSz
-
     local function update(x)
         local rel = math.clamp((x - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
         value = math.floor(min + (max - min) * rel)
-        -- Smooth fill animation
         tween(fill, EASE.FAST, {Size = UDim2.new(rel, 0, 1, 0)})
         tween(knob, EASE.FAST, {Position = UDim2.new(rel, -knobSz/2, 0.5, -knobSz/2)})
         label.Text = labelText .. ": " .. value .. (suffix and " " .. suffix or "")
         if callback then callback(value) end
     end
-
     local hitbox = Instance.new("TextButton")
     hitbox.Size = UDim2.new(1, 0, 0, IS_MOBILE and 50 or 20)
     hitbox.Position = UDim2.new(0, 0, 0.5, IS_MOBILE and -5 or 0)
     hitbox.BackgroundTransparency = 1
     hitbox.Text = ""
     hitbox.Parent = track
-
     hitbox.InputBegan:Connect(function(i)
         if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             update(i.Position.X)
-            -- Knob scales up when grabbed
-            tween(knob, EASE.FAST, {Size = UDim2.new(0, baseKnobSz + 6, 0, baseKnobSz + 6)})
-            knobStroke.Thickness = 2
         end
     end)
     hitbox.InputEnded:Connect(function(i)
         if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
             dragging = false
-            -- Knob scales back smoothly
-            tween(knob, EASE.SPRING, {Size = UDim2.new(0, baseKnobSz, 0, baseKnobSz)})
-            knobStroke.Thickness = 0
         end
     end)
     UserInputService.InputChanged:Connect(function(i)
@@ -457,9 +392,8 @@ local function createSlider(parent, labelText, min, max, default, suffix, callba
             update(i.Position.X)
         end
     end)
-
     task.spawn(function()
-        while row.Parent do fill.BackgroundColor3 = rgbColor(0) knobStroke.Color = rgbColor(0) RunService.RenderStepped:Wait() end
+        while row.Parent do fill.BackgroundColor3 = rgbColor(0) RunService.RenderStepped:Wait() end
     end)
     return row
 end
@@ -478,9 +412,7 @@ local function createButton(parent, labelText, callback, customColor)
     btn.Parent = parent
     createCorner(btn, 8)
     local stroke = createStroke(btn, 1.5, rgbColor(0))
-
-    -- Ripple effect on press
-    local function ripple()
+    btn.MouseButton1Click:Connect(function()
         local r = Instance.new("Frame")
         r.BackgroundColor3 = Color3.fromRGB(255,255,255)
         r.BackgroundTransparency = 0.7
@@ -495,23 +427,11 @@ local function createButton(parent, labelText, callback, customColor)
             BackgroundTransparency = 1
         })
         task.delay(0.5, function() r:Destroy() end)
-    end
-
-    btn.MouseButton1Click:Connect(function()
-        ripple()
         tween(btn, EASE.FAST, {Size = UDim2.new(1, -20, 0, BTN_HEIGHT - 2)})
         task.wait(0.1)
         tween(btn, EASE.SPRING, {Size = UDim2.new(1, -16, 0, BTN_HEIGHT)})
         if callback then callback() end
     end)
-
-    btn.MouseEnter:Connect(function()
-        tween(btn, EASE.FAST, {BackgroundColor3 = customColor and Color3.fromRGB(200,80,80) or Color3.fromRGB(45,45,62)})
-    end)
-    btn.MouseLeave:Connect(function()
-        tween(btn, EASE.FAST, {BackgroundColor3 = customColor or Color3.fromRGB(30,30,42)})
-    end)
-
     if not customColor then
         task.spawn(function()
             while btn.Parent do stroke.Color = rgbColor(0) RunService.RenderStepped:Wait() end
@@ -528,7 +448,6 @@ local function createParagraph(parent, titleText, contentText)
     para.Parent = parent
     createCorner(para, 8)
     local ps = createStroke(para, 1, Color3.fromRGB(60,40,90))
-
     local t = Instance.new("TextLabel")
     t.Size = UDim2.new(1, -20, 0, 20)
     t.Position = UDim2.new(0, 12, 0, 8)
@@ -539,7 +458,6 @@ local function createParagraph(parent, titleText, contentText)
     t.TextSize = IS_MOBILE and 14 or 13
     t.TextXAlignment = Enum.TextXAlignment.Left
     t.Parent = para
-
     local c = Instance.new("TextLabel")
     c.Size = UDim2.new(1, -20, 1, -30)
     c.Position = UDim2.new(0, 12, 0, 28)
@@ -552,7 +470,6 @@ local function createParagraph(parent, titleText, contentText)
     c.TextYAlignment = Enum.TextYAlignment.Top
     c.TextXAlignment = Enum.TextXAlignment.Left
     c.Parent = para
-
     task.spawn(function()
         while para.Parent do t.TextColor3 = rgbColor(0) ps.Color = rgbColor(0.5) RunService.RenderStepped:Wait() end
     end)
@@ -560,7 +477,7 @@ local function createParagraph(parent, titleText, contentText)
 end
 
 --==============================================================
--- ULTRA SMOOTH LOADING SCREEN
+-- STEP 1: LOADING SCREEN (una ito!)
 --==============================================================
 local function createLoadingScreen()
     local gui = Instance.new("ScreenGui")
@@ -571,7 +488,6 @@ local function createLoadingScreen()
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     safeParent(gui)
 
-    -- Background with smooth fade-in
     local bg = Instance.new("Frame")
     bg.Size = UDim2.new(1, 0, 1, 0)
     bg.BackgroundColor3 = Color3.fromRGB(8, 8, 14)
@@ -588,7 +504,6 @@ local function createLoadingScreen()
     bgGrad.Rotation = 45
     bgGrad.Parent = bg
 
-    -- Title (animated entrance)
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(0.9, 0, 0, 80)
     title.Position = UDim2.new(0.05, 0, 0.2, 0)
@@ -622,7 +537,7 @@ local function createLoadingScreen()
 
     local avSize = IS_MOBILE and 110 or 140
     local avatarFrame = Instance.new("Frame")
-    avatarFrame.Size = UDim2.new(0, 0, 0, 0) -- start small
+    avatarFrame.Size = UDim2.new(0, 0, 0, 0)
     avatarFrame.Position = UDim2.new(0.5, -avSize/2, 0.42, 0)
     avatarFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
     avatarFrame.BackgroundTransparency = 1
@@ -681,7 +596,6 @@ local function createLoadingScreen()
     }
     barGrad.Parent = barFill
 
-    -- Shimmer overlay
     local shimmer = Instance.new("Frame")
     shimmer.Size = UDim2.new(0.2, 0, 1, 0)
     shimmer.BackgroundColor3 = Color3.fromRGB(255,255,255)
@@ -701,7 +615,6 @@ local function createLoadingScreen()
     status.TextTransparency = 1
     status.Parent = bg
 
-    -- Entrance animations (STAGGERED)
     tween(bg, TweenInfo.new(0.5), {BackgroundTransparency = 0})
     task.wait(0.15)
     tween(title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0, TextStrokeTransparency = 0})
@@ -716,7 +629,6 @@ local function createLoadingScreen()
     tween(barBg, TweenInfo.new(0.4), {BackgroundTransparency = 0})
     tween(status, TweenInfo.new(0.4), {TextTransparency = 0})
 
-    -- RGB + shimmer loops
     task.spawn(function()
         while gui.Parent do
             avStroke.Color = rgbColor(0)
@@ -729,25 +641,11 @@ local function createLoadingScreen()
         end
     end)
 
-    -- Shimmer effect
     task.spawn(function()
         while gui.Parent and barFill.Parent do
             shimmer.Position = UDim2.new(-0.3, 0, 0, 0)
             tween(shimmer, TweenInfo.new(1.2, Enum.EasingStyle.Linear), {Position = UDim2.new(1.1, 0, 0, 0)})
             task.wait(1.4)
-        end
-    end)
-
-    -- Rotating conic ring effect (using another stroke rotating via a rotating image)
-    -- Simulated by pulsing the avatar stroke
-    task.spawn(function()
-        while gui.Parent and avatarFrame.Parent do
-            tween(avStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 6})
-            tween(avStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0.2})
-            task.wait(1.2)
-            tween(avStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 4})
-            tween(avStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Transparency = 0})
-            task.wait(1.2)
         end
     end)
 
@@ -760,7 +658,6 @@ local function createLoadingScreen()
     }
     for _, step in ipairs(steps) do
         status.Text = step.text
-        -- Fade out status, change, fade in (smoother than pop)
         tween(status, TweenInfo.new(0.15), {TextTransparency = 0.6})
         task.wait(0.1)
         tween(status, TweenInfo.new(0.15), {TextTransparency = 0})
@@ -769,7 +666,6 @@ local function createLoadingScreen()
     end
     task.wait(0.6)
 
-    -- Exit animations (smooth fade out)
     tween(bg, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 1})
     for _, v in ipairs(bg:GetDescendants()) do
         if v:IsA("TextLabel") or v:IsA("ImageLabel") then
@@ -780,19 +676,16 @@ local function createLoadingScreen()
             TweenService:Create(v, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {Transparency = 1}):Play()
         end
     end
-    -- Scale down avatar while fading
     tween(avatarFrame, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
     task.wait(0.9)
     gui:Destroy()
 end
 
 --==============================================================
--- MAIN GUI
+-- STEP 2: MAIN GUI (pagkatapos ng loading)
 --==============================================================
-local screenGui, floatGui, main
-
 local function buildMainGui()
-    screenGui = Instance.new("ScreenGui")
+    local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "YinetsuHubMain"
     screenGui.ResetOnSpawn = false
     screenGui.DisplayOrder = 9998
@@ -800,31 +693,26 @@ local function buildMainGui()
     screenGui.Enabled = true
     safeParent(screenGui)
 
+    local main
     if IS_MOBILE then
         main = Instance.new("Frame")
-        main.Size = UDim2.new(0.92, 0, 0.75, 0)
-        main.Position = UDim2.new(0.04, 0, 0.12, 0)
+        main.Size = UDim2.new(0, 0, 0, 0)
+        main.AnchorPoint = Vector2.new(0.5, 0.5)
+        main.Position = UDim2.new(0.5, 0, 0.5, 0)
     else
         main = Instance.new("Frame")
-        main.Size = UDim2.new(0, 520, 0, 400)
-        main.Position = UDim2.new(0.5, -260, 0.5, -200)
+        main.Size = UDim2.new(0, 0, 0, 0)
+        main.AnchorPoint = Vector2.new(0.5, 0.5)
+        main.Position = UDim2.new(0.5, 0, 0.5, 0)
     end
     main.BackgroundColor3 = Color3.fromRGB(14,14,20)
     main.BackgroundTransparency = 0
     main.BorderSizePixel = 0
     main.Active = true
     main.Visible = true
-    main.AnchorPoint = Vector2.new(0.5, 0.5)
-    -- Spring opening animation: start small + transparent, scale up
-    local targetSize = main.Size
-    local targetPos = main.Position
-    main.Size = UDim2.new(0, 0, 0, 0)
-    main.Position = UDim2.new(0.5, 0, 0.5, 0)
-    main.BackgroundTransparency = 1
     main.Parent = screenGui
     createCorner(main, 14)
     local mainStroke = createStroke(main, 2, rgbColor(0))
-    mainStroke.Transparency = 1
 
     local mainGrad = Instance.new("UIGradient")
     mainGrad.Color = ColorSequence.new{
@@ -834,11 +722,14 @@ local function buildMainGui()
     mainGrad.Rotation = 90
     mainGrad.Parent = main
 
-    -- OPENING ANIMATION (spring scale + fade)
+    local targetSize = IS_MOBILE and UDim2.new(0.92, 0, 0.75, 0) or UDim2.new(0, 520, 0, 400)
+    local targetPos = IS_MOBILE and UDim2.new(0.04, 0, 0.12, 0) or UDim2.new(0.5, -260, 0.5, -200)
+
+    -- SPRING OPEN
+    main.AnchorPoint = Vector2.new(0, 0)
     tween(main, TweenInfo.new(0.65, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = targetSize, Position = targetPos, BackgroundTransparency = 0
+        Size = targetSize, Position = targetPos
     })
-    tween(mainStroke, TweenInfo.new(0.5), {Transparency = 0})
 
     local topbarH = IS_MOBILE and 50 or 45
     local topbar = Instance.new("Frame")
@@ -889,21 +780,8 @@ local function buildMainGui()
     closeBtn.BorderSizePixel = 0
     closeBtn.Parent = topbar
     createCorner(closeBtn, 8)
-    closeBtn.MouseEnter:Connect(function() tween(closeBtn, EASE.FAST, {BackgroundColor3 = Color3.fromRGB(255,80,100)}) end)
-    closeBtn.MouseLeave:Connect(function() tween(closeBtn, EASE.FAST, {BackgroundColor3 = Color3.fromRGB(220,60,80)}) end)
     closeBtn.MouseButton1Click:Connect(function()
-        -- Smooth close: scale down + fade
-        tween(main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-            Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1
-        })
-        tween(mainStroke, TweenInfo.new(0.3), {Transparency = 1})
-        task.wait(0.4)
         screenGui.Enabled = false
-        -- Reset for next open
-        main.Size = targetSize
-        main.Position = targetPos
-        main.BackgroundTransparency = 0
-        mainStroke.Transparency = 0
     end)
 
     local sideW = IS_MOBILE and 110 or 140
@@ -928,58 +806,25 @@ local function buildMainGui()
     content.Size = UDim2.new(1, -(sideW + 24), 1, -(topbarH + 10))
     content.Position = UDim2.new(0, sideW + 16, 0, topbarH + 5)
     content.BackgroundTransparency = 1
-    content.ClipsDescendants = true
     content.Parent = main
 
     local pages = {}
     local tabButtons = {}
     local activePage = nil
 
-    -- SMOOTH page transition (slide + fade)
     local function showPage(name)
-        local newPage = pages[name]
-        if not newPage then return end
-
-        if activePage and activePage ~= newPage and activePage.Visible then
-            local old = activePage
-            -- Slide out to left + fade
-            tween(old, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                Position = UDim2.new(-0.3, 0, 0, 0)
-            })
-            for _, c in ipairs(old:GetChildren()) do
-                if c:IsA("GuiObject") then
-                    tween(c, TweenInfo.new(0.2), {BackgroundTransparency = 1})
-                end
-            end
-            task.delay(0.25, function()
-                old.Visible = false
-                old.Position = UDim2.new(0, 0, 0, 0)
-                for _, c in ipairs(old:GetChildren()) do
-                    if c:IsA("GuiObject") then
-                        -- restore transparency later handled on show
-                    end
-                end
-            end)
-        end
-
-        newPage.Visible = true
-        newPage.Position = UDim2.new(0.3, 0, 0, 0)
-        tween(newPage, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 0, 0, 0)
-        })
-
+        for n, p in pairs(pages) do p.Visible = (n == name) end
         for n, b in pairs(tabButtons) do
             tween(b, EASE.SMOOTH, {
                 BackgroundColor3 = (n == name) and Color3.fromRGB(40,25,60) or Color3.fromRGB(24,24,34)
             })
         end
-        activePage = newPage
+        activePage = name
     end
 
     local function createPage(name)
         local page = Instance.new("ScrollingFrame")
         page.Size = UDim2.new(1, 0, 1, 0)
-        page.Position = UDim2.new(0, 0, 0, 0)
         page.BackgroundTransparency = 1
         page.BorderSizePixel = 0
         page.ScrollBarThickness = IS_MOBILE and 6 or 4
@@ -987,7 +832,6 @@ local function buildMainGui()
         page.CanvasSize = UDim2.new(0, 0, 0, 0)
         page.AutomaticCanvasSize = Enum.AutomaticSize.Y
         page.Visible = false
-        page.ClipsDescendants = false
         page.Parent = content
 
         local layout = Instance.new("UIListLayout")
@@ -1015,45 +859,9 @@ local function buildMainGui()
         btn.TextXAlignment = Enum.TextXAlignment.Left
         btn.AutoButtonColor = false
         btn.BorderSizePixel = 0
-        btn.ClipsDescendants = true
         btn.Parent = sidebar
         createCorner(btn, 8)
-
-        -- Indicator bar (smooth slide on select)
-        local indicator = Instance.new("Frame")
-        indicator.Size = UDim2.new(0, 3, 0, 0)
-        indicator.Position = UDim2.new(0, 0, 0.5, 0)
-        indicator.BackgroundColor3 = rgbColor(0)
-        indicator.BorderSizePixel = 0
-        indicator.ZIndex = 2
-        indicator.Parent = btn
-        createCorner(indicator, 2)
-
-        btn.MouseEnter:Connect(function()
-            if activePage ~= pages[name] then
-                tween(btn, EASE.FAST, {BackgroundColor3 = Color3.fromRGB(32,32,48)})
-            end
-        end)
-        btn.MouseLeave:Connect(function()
-            if activePage ~= pages[name] then
-                tween(btn, EASE.FAST, {BackgroundColor3 = Color3.fromRGB(24,24,34)})
-            end
-        end)
-        btn.MouseButton1Click:Connect(function()
-            showPage(name)
-            for _, b in pairs(tabButtons) do
-                local ind = b:FindFirstChildWhichIsA("Frame")
-                if ind then
-                    tween(ind, EASE.SOFT, {Size = UDim2.new(0, 3, 0, 0)})
-                end
-            end
-            tween(indicator, EASE.SOFT, {Size = UDim2.new(0, 3, 0, btn.AbsoluteSize.Y - 12)})
-        end)
-
-        task.spawn(function()
-            while btn.Parent do indicator.BackgroundColor3 = rgbColor(0) RunService.RenderStepped:Wait() end
-        end)
-
+        btn.MouseButton1Click:Connect(function() showPage(name) end)
         tabButtons[name] = btn
         return btn
     end
@@ -1066,7 +874,6 @@ local function buildMainGui()
     createTabBtn("speed", "⚡ Speed")
     createTabBtn("exec", "💻 Exec")
 
-    -- FARM
     createParagraph(farmPage, "HEADS UP", "Auto farm requires at least 200 wins in balance.")
     createParagraph(farmPage, "BYPASS STATE", "Bypasses loaded — NPCs & traps disabled.")
     createToggle(farmPage, "Start Auto Farm", false, function(v)
@@ -1082,7 +889,6 @@ local function buildMainGui()
     end)
     createSlider(farmPage, "Fly Speed", 50, 500, 200, "studs", function(v) speed = v end)
 
-    -- SPEED
     if IS_MOBILE then
         createParagraph(speedPage, "HOW TO USE", "Tap the big +1 SPEED button below to add speed! No keyboard needed.")
     else
@@ -1104,7 +910,6 @@ local function buildMainGui()
     createCorner(bigSpeedBtn, 12)
     local bigStroke = createStroke(bigSpeedBtn, 3, rgbColor(0))
 
-    -- Continuous breathing glow
     task.spawn(function()
         while bigSpeedBtn.Parent do
             tween(bigStroke, TweenInfo.new(0.9, Enum.EasingStyle.Sine), {Thickness = 5})
@@ -1115,28 +920,23 @@ local function buildMainGui()
         end
     end)
 
-    -- Ripple function
-    local function ripple(parent)
-        local r = Instance.new("Frame")
-        r.BackgroundColor3 = Color3.fromRGB(255,255,255)
-        r.BackgroundTransparency = 0.7
-        r.Size = UDim2.new(0, 10, 0, 10)
-        r.Position = UDim2.new(0.5, -5, 0.5, -5)
-        r.ZIndex = 5
-        r.Parent = parent
-        createCorner(r, 50)
-        tween(r, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, parent.AbsoluteSize.X * 2, 0, parent.AbsoluteSize.X * 2),
-            Position = UDim2.new(0.5, -parent.AbsoluteSize.X, 0.5, -parent.AbsoluteSize.X),
-            BackgroundTransparency = 1
-        })
-        task.delay(0.6, function() r:Destroy() end)
-    end
-
     bigSpeedBtn.MouseButton1Click:Connect(function()
         if speedBoostActive then
             addSpeed()
-            ripple(bigSpeedBtn)
+            local r = Instance.new("Frame")
+            r.BackgroundColor3 = Color3.fromRGB(255,255,255)
+            r.BackgroundTransparency = 0.7
+            r.Size = UDim2.new(0, 10, 0, 10)
+            r.Position = UDim2.new(0.5, -5, 0.5, -5)
+            r.ZIndex = 5
+            r.Parent = bigSpeedBtn
+            createCorner(r, 50)
+            tween(r, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {
+                Size = UDim2.new(0, bigSpeedBtn.AbsoluteSize.X * 2, 0, bigSpeedBtn.AbsoluteSize.X * 2),
+                Position = UDim2.new(0.5, -bigSpeedBtn.AbsoluteSize.X, 0.5, -bigSpeedBtn.AbsoluteSize.X),
+                BackgroundTransparency = 1
+            })
+            task.delay(0.6, function() r:Destroy() end)
             tween(bigSpeedBtn, EASE.FAST, {Size = UDim2.new(1, -22, 0, (IS_MOBILE and 70 or 60) - 4)})
             task.wait(0.08)
             tween(bigSpeedBtn, EASE.SPRING, {Size = UDim2.new(1, -16, 0, IS_MOBILE and 70 or 60)})
@@ -1171,7 +971,6 @@ local function buildMainGui()
         end
     end)
 
-    -- EXEC
     local executorName = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "web / unknown exploit"
     createParagraph(execPage, "ACTIVE EXPLOIT", "Running on: " .. tostring(executorName))
     createButton(execPage, "📋 COPY EXECUTOR NAME", function()
@@ -1195,9 +994,9 @@ local function buildMainGui()
     end)
 
     --==========================================================
-    -- FLOATING BUTTON (smooth bob + pulse + rotation)
-    --==============================================================
-    floatGui = Instance.new("ScreenGui")
+    -- FLOATING BUTTON
+    --==========================================================
+    local floatGui = Instance.new("ScreenGui")
     floatGui.Name = "YinetsuFloat"
     floatGui.ResetOnSpawn = false
     floatGui.DisplayOrder = 9999
@@ -1213,7 +1012,6 @@ local function buildMainGui()
 
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.Position = UDim2.new(0, 0, 0, 0)
     btn.BackgroundColor3 = Color3.fromRGB(25,20,40)
     btn.Text = "Y"
     btn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -1239,7 +1037,6 @@ local function buildMainGui()
     grad.Rotation = 45
     grad.Parent = btn
 
-    -- RGB loop
     task.spawn(function()
         local lh = 0
         while floatGui.Parent do
@@ -1250,7 +1047,6 @@ local function buildMainGui()
         end
     end)
 
-    -- FLOATING BOB animation (continuous up-down)
     task.spawn(function()
         local up = true
         while floatGui.Parent do
@@ -1263,7 +1059,6 @@ local function buildMainGui()
         end
     end)
 
-    -- Pulse glow
     task.spawn(function()
         while floatGui.Parent do
             tween(stroke, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Thickness = 5})
@@ -1297,24 +1092,7 @@ local function buildMainGui()
     end)
     btn.MouseButton1Click:Connect(function()
         if not moved then
-            if screenGui.Enabled then
-                -- Close: scale down
-                tween(main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-                    Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)
-                })
-                task.delay(0.35, function()
-                    screenGui.Enabled = false
-                    main.Size = (IS_MOBILE and UDim2.new(0.92, 0, 0.75, 0)) or UDim2.new(0, 520, 0, 400)
-                    main.Position = (IS_MOBILE and UDim2.new(0.04, 0, 0.12, 0)) or UDim2.new(0.5, -260, 0.5, -200)
-                end)
-            else
-                -- Open: scale up
-                screenGui.Enabled = true
-                tween(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Size = (IS_MOBILE and UDim2.new(0.92, 0, 0.75, 0)) or UDim2.new(0, 520, 0, 400),
-                    Position = (IS_MOBILE and UDim2.new(0.04, 0, 0.12, 0)) or UDim2.new(0.5, -260, 0.5, -200)
-                })
-            end
+            screenGui.Enabled = not screenGui.Enabled
             tween(btn, EASE.FAST, {TextSize = (IS_MOBILE and 30 or 26) + 6})
             task.wait(0.1)
             tween(btn, EASE.SPRING, {TextSize = IS_MOBILE and 30 or 26})
@@ -1323,18 +1101,17 @@ local function buildMainGui()
 end
 
 --==============================================================
--- RUN
+-- STEP 3: RUN — LOADING MUNA, TAPOS GUI
 --==============================================================
-task.spawn(function()
-    createLoadingScreen()
-    task.wait(0.5)
-    buildMainGui()
-    task.wait(0.3)
-    pcall(function()
-        StarterGui:SetCore("SendNotification", {
-            Title = "YINETSU HUB LOADED",
-            Text = IS_MOBILE and ("Welcome " .. LocalPlayer.DisplayName .. "! Tap big +1 SPEED button.") or ("Welcome " .. LocalPlayer.DisplayName .. "! Press [E] or use +1 SPEED button."),
-            Duration = 5,
-        })
-    end)
+createLoadingScreen()  -- 1. LOADING MUNA
+task.wait(0.3)
+buildMainGui()         -- 2. GUI PAGKATAPOS NG LOADING
+
+task.wait(0.3)
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "YINETSU HUB LOADED",
+        Text = IS_MOBILE and ("Welcome " .. LocalPlayer.DisplayName .. "! Tap big +1 SPEED button.") or ("Welcome " .. LocalPlayer.DisplayName .. "! Press [E] or use +1 SPEED button."),
+        Duration = 5,
+    })
 end)
