@@ -1,0 +1,671 @@
+--[[
+    ██╗   ██╗██╗███╗   ██╗███████╗████████╗███████╗██╗   ██╗    ██╗  ██╗██╗   ██╗██████╗ 
+    ╚██╗ ██╔╝██║████╗  ██║██╔════╝╚══██╔══╝██╔════╝██║   ██║    ██║  ██║██║   ██║██╔══██╗
+     ╚████╔╝ ██║██╔██╗ ██║█████╗     ██║   ███████╗██║   ██║    ███████║██║   ██║██████╔╝
+      ╚██╔╝  ██║██║╚██╗██║██╔══╝     ██║   ╚════██║██║   ██║    ██╔══██║██║   ██║██╔══██╗
+       ██║   ██║██║ ╚████║███████╗   ██║   ███████║╚██████╔╝    ██║  ██║╚██████╔╝██████╔╝
+       ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚══════╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ 
+                                    +1 SPEED KEYBOARD ESCAPE
+]]
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CollectionService = game:GetService("CollectionService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+--==============================================================
+-- LOADING SCREEN (WELCOME + AVATAR)
+--==============================================================
+local function createLoadingScreen()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "YinetsuLoading"
+    gui.IgnoreGuiInset = true
+    gui.ResetOnSpawn = false
+    gui.DisplayOrder = 9999
+    gui.Parent = game:GetService("CoreGui")
+
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.new(1, 0, 1, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    bg.BorderSizePixel = 0
+    bg.Parent = gui
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 0, 40)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 10, 30)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 20)),
+    }
+    gradient.Rotation = 45
+    gradient.Parent = bg
+
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 80)
+    title.Position = UDim2.new(0, 0, 0.25, 0)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBlack
+    title.Text = "YINETSU HUB"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
+    title.TextStrokeTransparency = 0
+    title.TextStrokeColor3 = Color3.fromRGB(180, 0, 255)
+    title.Parent = bg
+
+    local titleScale = Instance.new("UITextSizeConstraint")
+    titleScale.MaxTextSize = 80
+    titleScale.Parent = title
+
+    -- Subtitle
+    local sub = Instance.new("TextLabel")
+    sub.Size = UDim2.new(1, 0, 0, 30)
+    sub.Position = UDim2.new(0, 0, 0.35, 0)
+    sub.BackgroundTransparency = 1
+    sub.Font = Enum.Font.GothamBold
+    sub.Text = "+1 SPEED KEYBOARD ESCAPE"
+    sub.TextColor3 = Color3.fromRGB(180, 180, 255)
+    sub.TextScaled = true
+    sub.Parent = bg
+
+    local subScale = Instance.new("UITextSizeConstraint")
+    subScale.MaxTextSize = 22
+    subScale.Parent = sub
+
+    -- Avatar container
+    local avatarFrame = Instance.new("Frame")
+    avatarFrame.Size = UDim2.new(0, 140, 0, 140)
+    avatarFrame.Position = UDim2.new(0.5, -70, 0.5, 0)
+    avatarFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    avatarFrame.BorderSizePixel = 0
+    avatarFrame.Parent = bg
+
+    local avatarCorner = Instance.new("UICorner")
+    avatarCorner.CornerRadius = UDim.new(1, 0)
+    avatarCorner.Parent = avatarFrame
+
+    local avatarStroke = Instance.new("UIStroke")
+    avatarStroke.Thickness = 4
+    avatarStroke.Color = Color3.fromRGB(180, 0, 255)
+    avatarStroke.Parent = avatarFrame
+
+    local avatarImg = Instance.new("ImageLabel")
+    avatarImg.Size = UDim2.new(1, -10, 1, -10)
+    avatarImg.Position = UDim2.new(0, 5, 0, 5)
+    avatarImg.BackgroundTransparency = 1
+    avatarImg.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420"
+    avatarImg.Parent = avatarFrame
+
+    local avatarImgCorner = Instance.new("UICorner")
+    avatarImgCorner.CornerRadius = UDim.new(1, 0)
+    avatarImgCorner.Parent = avatarImg
+
+    -- Welcome text
+    local welcome = Instance.new("TextLabel")
+    welcome.Size = UDim2.new(1, 0, 0, 40)
+    welcome.Position = UDim2.new(0, 0, 0.72, 0)
+    welcome.BackgroundTransparency = 1
+    welcome.Font = Enum.Font.GothamBold
+    welcome.Text = "WELCOME, " .. string.upper(LocalPlayer.DisplayName)
+    welcome.TextColor3 = Color3.fromRGB(255, 255, 255)
+    welcome.TextScaled = true
+    welcome.Parent = bg
+
+    local welcomeScale = Instance.new("UITextSizeConstraint")
+    welcomeScale.MaxTextSize = 32
+    welcomeScale.Parent = welcome
+
+    -- Loading bar
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0, 400, 0, 8)
+    barBg.Position = UDim2.new(0.5, -200, 0.82, 0)
+    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = bg
+
+    local barBgCorner = Instance.new("UICorner")
+    barBgCorner.CornerRadius = UDim.new(1, 0)
+    barBgCorner.Parent = barBg
+
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+
+    local barFillCorner = Instance.new("UICorner")
+    barFillCorner.CornerRadius = UDim.new(1, 0)
+    barFillCorner.Parent = barFill
+
+    local barGradient = Instance.new("UIGradient")
+    barGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 150)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255)),
+    }
+    barGradient.Parent = barFill
+
+    -- Status text
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(1, 0, 0, 20)
+    status.Position = UDim2.new(0, 0, 0.86, 0)
+    status.BackgroundTransparency = 1
+    status.Font = Enum.Font.Gotham
+    status.Text = "Initializing..."
+    status.TextColor3 = Color3.fromRGB(180, 180, 200)
+    status.TextSize = 14
+    status.Parent = bg
+
+    -- RGB animation on stroke
+    task.spawn(function()
+        local hue = 0
+        while gui.Parent do
+            hue = (hue + 0.01) % 1
+            avatarStroke.Color = Color3.fromHSV(hue, 1, 1)
+            title.TextStrokeColor3 = Color3.fromHSV(hue, 1, 1)
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    -- Loading animation
+    local steps = {
+        {text = "Loading modules...", progress = 0.2},
+        {text = "Fetching avatar...", progress = 0.4},
+        {text = "Bypassing anti-cheat...", progress = 0.6},
+        {text = "Injecting YINETSU HUB...", progress = 0.8},
+        {text = "Welcome, " .. LocalPlayer.DisplayName .. "!", progress = 1},
+    }
+
+    for _, step in ipairs(steps) do
+        status.Text = step.text
+        TweenService:Create(barFill, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(step.progress, 0, 1, 0)
+        }):Play()
+        task.wait(0.5)
+    end
+
+    task.wait(0.6)
+    TweenService:Create(bg, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+    for _, v in ipairs(bg:GetDescendants()) do
+        if v:IsA("TextLabel") or v:IsA("ImageLabel") then
+            TweenService:Create(v, TweenInfo.new(0.8), {TextTransparency = 1, ImageTransparency = 1}):Play()
+        elseif v:IsA("Frame") then
+            TweenService:Create(v, TweenInfo.new(0.8), {BackgroundTransparency = 1}):Play()
+        elseif v:IsA("UIStroke") then
+            TweenService:Create(v, TweenInfo.new(0.8), {Transparency = 1}):Play()
+        end
+    end
+    task.wait(0.9)
+    gui:Destroy()
+end
+
+createLoadingScreen()
+
+--==============================================================
+-- GODMODE (bypasses client traps/npc)
+--==============================================================
+local oldNewIndex
+oldNewIndex = hookmetamethod(game, "__newindex", function(self, key, value)
+    if not checkcaller() and key == "Health" and self:IsA("Humanoid") then
+        local character = LocalPlayer.Character
+        if character and self:IsDescendantOf(character) then
+            if type(value) == "number" and value <= 0 then
+                return
+            end
+        end
+    end
+    return oldNewIndex(self, key, value)
+end)
+
+--==============================================================
+-- NPC ZONES
+--==============================================================
+local npcZoneTags = {
+    "NPC9_Zone", "NPC10_AttackZone", "NPC12_LabyrinthZone",
+    "NPC15_Zone", "NPC15_SpeedZone", "MacaronMonster_AttackZone"
+}
+local function destroyZone(inst)
+    if inst and inst.Parent then inst:Destroy() end
+end
+for _, tag in ipairs(npcZoneTags) do
+    for _, inst in ipairs(CollectionService:GetTagged(tag)) do
+        destroyZone(inst)
+    end
+    CollectionService:GetInstanceAddedSignal(tag):Connect(function(inst)
+        task.defer(destroyZone, inst)
+    end)
+end
+
+--==============================================================
+-- NPC DESTROY
+--==============================================================
+local npcNames = {
+    ["NPC9"] = true, ["NPC10"] = true, ["NPC12"] = true,
+    ["NPC15"] = true, ["NPC_MacaronMonster"] = true
+}
+local function handleWorkspaceDescendant(desc)
+    if npcNames[desc.Name] then
+        task.defer(function()
+            if desc.Parent then desc:Destroy() end
+        end)
+    end
+end
+for _, desc in ipairs(workspace:GetDescendants()) do
+    handleWorkspaceDescendant(desc)
+end
+workspace.DescendantAdded:Connect(handleWorkspaceDescendant)
+
+--==============================================================
+-- TRAP DISARMER
+--==============================================================
+local trapTags = { "CrushTrap", "LavaTrap", "MovingWallModel", "TsunamiModel" }
+local function disableTrapPart(part)
+    if part:IsA("BasePart") then
+        local name = part.Name
+        if string.find(name, "MovingWall") or name == "WallL" or name == "WallR" or name == "LavaPart" or name == "Tsunami" then
+            part.CanCollide = false
+            part.CanTouch = false
+            part.Transparency = 0.6
+        end
+    end
+end
+for _, tag in ipairs(trapTags) do
+    for _, trap in ipairs(CollectionService:GetTagged(tag)) do
+        for _, desc in ipairs(trap:GetDescendants()) do
+            disableTrapPart(desc)
+        end
+        trap.DescendantAdded:Connect(disableTrapPart)
+    end
+    CollectionService:GetInstanceAddedSignal(tag):Connect(function(trap)
+        for _, desc in ipairs(trap:GetDescendants()) do
+            disableTrapPart(desc)
+        end
+        trap.DescendantAdded:Connect(disableTrapPart)
+    end)
+end
+
+--==============================================================
+-- PATH TO FOLLOW
+--==============================================================
+local path = {
+    Vector3.new(-538.81, 54.73, 1467.41),
+    Vector3.new(-1087.84, 54.72, 1467.17),
+    Vector3.new(-1092.34, 296.73, 1467.14),
+    Vector3.new(-1240.36, 302.92, 1469.17),
+    Vector3.new(-1378.21, 290.70, 1468.16),
+    Vector3.new(-1422.84, 335.34, 1469.52),
+    Vector3.new(-1506.04, 337.10, 1469.52),
+    Vector3.new(-1622.44, 321.50, 1469.52),
+    Vector3.new(-1816.66, 301.41, 1467.65),
+    Vector3.new(-1861.17, 317.35, 1468.30),
+    Vector3.new(-2012.61, 307.68, 1467.25),
+    Vector3.new(-2155.17, 317.56, 1467.23),
+    Vector3.new(-2176.93, 325.10, 1467.23),
+    Vector3.new(-2314.67, 315.22, 1467.26),
+    Vector3.new(-2345.06, 326.15, 1467.24),
+    Vector3.new(-2515.24, 322.99, 1467.24),
+    Vector3.new(-2664.66, 294.50, 1480.21),
+    Vector3.new(-2780.65, 306.12, 1477.10),
+    Vector3.new(-2789.97, 309.54, 1477.40),
+    Vector3.new(-2946.51, 296.72, 1477.03),
+    Vector3.new(-3943.46, 296.73, 1475.96),
+    Vector3.new(-4302.24, 296.71, 1473.44),
+    Vector3.new(-4303.76, 343.73, 1473.44),
+    Vector3.new(-4310.13, 343.75, 1488.40),
+    Vector3.new(-4319.32, 398.57, 1603.56),
+    Vector3.new(-4347.34, 400.42, 1610.86),
+    Vector3.new(-4347.62, 407.62, 1571.09),
+    Vector3.new(-4348.67, 418.48, 1438.44),
+    Vector3.new(-4349.52, 434.76, 1406.09),
+    Vector3.new(-4327.20, 434.89, 1393.84),
+    Vector3.new(-4238.68, 436.17, 1393.75),
+    Vector3.new(-4322.98, 440.25, 1493.15),
+    Vector3.new(-4325.81, 471.13, 1509.14),
+    Vector3.new(-4383.67, 471.24, 1537.19),
+    Vector3.new(-5346, 477, 1460)
+}
+local speed = 200
+local autoFarmActive = false
+
+local function getCharacterAndHRP()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    return char, hrp
+end
+
+local function triggerTouchInterest(targetPart, playerPart)
+    if firetouchinterest and targetPart and playerPart then
+        firetouchinterest(targetPart, playerPart, 0)
+        task.wait(0.05)
+        firetouchinterest(targetPart, playerPart, 1)
+    end
+end
+
+local function startFarm()
+    task.spawn(function()
+        while autoFarmActive do
+            local character, hrp = getCharacterAndHRP()
+            if character and hrp then
+                local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+                local checkpointEvent = remotes and remotes:FindFirstChild("RequestCheckpointTp")
+                if checkpointEvent then
+                    checkpointEvent:FireServer(6, "wins")
+                end
+                task.wait(0.5)
+                if not autoFarmActive then break end
+                for _, targetPos in ipairs(path) do
+                    if not autoFarmActive then break end
+                    character, hrp = getCharacterAndHRP()
+                    if not hrp or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then break end
+                    local distance = (hrp.Position - targetPos).Magnitude
+                    local duration = distance / speed
+                    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+                    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos)})
+                    tween:Play()
+                    local completed = false
+                    local connection
+                    connection = tween.Completed:Connect(function() completed = true end)
+                    while not completed and autoFarmActive do
+                        task.wait()
+                        if not hrp or not hrp.Parent or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then
+                            tween:Cancel()
+                            if connection then connection:Disconnect() end
+                            break
+                        end
+                    end
+                    if connection then connection:Disconnect() end
+                    if not completed then break end
+                end
+                if not autoFarmActive then break end
+                local winBlock = workspace:FindFirstChild("Structure") and workspace.Structure:FindFirstChild("Stage13") and workspace.Structure.Stage13:FindFirstChild("WinBlock12")
+                if winBlock then
+                    character, hrp = getCharacterAndHRP()
+                    if hrp then triggerTouchInterest(winBlock, hrp) end
+                end
+            end
+            task.wait(0.5)
+        end
+    end)
+end
+
+--==============================================================
+-- +1 SPEED KEYBOARD ESCAPE (Press E)
+--==============================================================
+local speedBoostActive = true
+local baseSpeed = 16
+local currentSpeedBonus = 0
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.E and speedBoostActive then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            currentSpeedBonus = currentSpeedBonus + 1
+            hum.WalkSpeed = baseSpeed + currentSpeedBonus
+            -- popup notification
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "YINETSU HUB",
+                Text = "+1 Speed! Total bonus: " .. currentSpeedBonus .. " (WalkSpeed: " .. (baseSpeed + currentSpeedBonus) .. ")",
+                Duration = 2,
+            })
+        end
+    end
+end)
+
+-- Reset on respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    currentSpeedBonus = 0
+end)
+
+--==============================================================
+-- RGB FLOATING TOGGLE BUTTON (draggable)
+--==============================================================
+local function createFloatingButton(onClick)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "YinetsuFloatingBtn"
+    gui.ResetOnSpawn = false
+    gui.DisplayOrder = 9998
+    gui.Parent = game:GetService("CoreGui")
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 60, 0, 60)
+    btn.Position = UDim2.new(0, 20, 0.5, -30)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    btn.Text = "Y"
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBlack
+    btn.TextSize = 28
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Active = true
+    btn.Draggable = true
+    btn.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = btn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 3
+    stroke.Color = Color3.fromRGB(180, 0, 255)
+    stroke.Parent = btn
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 150)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 0, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255)),
+    }
+    gradient.Rotation = 45
+    gradient.Parent = btn
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(0, 200, 0, 20)
+    titleLabel.Position = UDim2.new(0, -70, 0, -26)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "YINETSU HUB"
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 14
+    titleLabel.TextStrokeTransparency = 0.5
+    titleLabel.Parent = btn
+
+    -- RGB Animation
+    task.spawn(function()
+        local hue = 0
+        while gui.Parent do
+            hue = (hue + 0.008) % 1
+            stroke.Color = Color3.fromHSV(hue, 1, 1)
+            gradient.Rotation = (gradient.Rotation + 2) % 360
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    -- Pulse animation
+    task.spawn(function()
+        while gui.Parent do
+            TweenService:Create(btn, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 65, 0, 65)}):Play()
+            task.wait(0.8)
+            TweenService:Create(btn, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 60, 0, 60)}):Play()
+            task.wait(0.8)
+        end
+    end)
+
+    -- Click
+    btn.MouseButton1Click:Connect(function()
+        btn.Text = "..."
+        task.wait(0.1)
+        btn.Text = "Y"
+        if onClick then onClick() end
+    end)
+
+    return gui
+end
+
+--==============================================================
+-- RAYFIELD GUI (with RGB theme)
+--==============================================================
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "YINETSU HUB | +1 SPEED ESCAPE",
+    LoadingTitle = "YINETSU HUB Loading...",
+    LoadingSubtitle = "by @vearytry",
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = "yinetsu_hub_cfg"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
+    },
+    KeySystem = false
+})
+
+-- RGB Theme Animation on Rayfield
+task.spawn(function()
+    local hue = 0
+    while Window do
+        hue = (hue + 0.005) % 1
+        local color = Color3.fromHSV(hue, 0.9, 1)
+        pcall(function()
+            Rayfield:ModifyTheme({
+                {"Topbar", "Background", color},
+                {"Topbar", "Title", Color3.new(1, 1, 1)},
+                {"Tab", "Selected", color},
+                {"Toggle", "Fill", color},
+                {"Slider", "Bar", color},
+                {"Button", "Background", color},
+                {"Dropdown", "Background", color},
+            })
+        end)
+        task.wait(0.1)
+    end
+end)
+
+local MainTab = Window:CreateTab("main farm", nil)
+local AlertPara = MainTab:CreateParagraph({ Title = "heads up", Content = "auto farm required at least 200 wins at balance" })
+local BypassPara = MainTab:CreateParagraph({ Title = "bypass state", Content = "bypasses loaded, npc and traps disabled." })
+
+local FarmToggle = MainTab:CreateToggle({
+    Name = "start auto farm",
+    CurrentValue = false,
+    Flag = "autofarmtoggle",
+    Callback = function(Value)
+        autoFarmActive = Value
+        if autoFarmActive then
+            Rayfield:Notify({ Title = "farm active", Content = "farm started", Duration = 3 })
+            startFarm()
+        else
+            Rayfield:Notify({ Title = "farm stopped", Content = "farm stopped", Duration = 3 })
+        end
+    end,
+})
+
+local SpeedSlider = MainTab:CreateSlider({
+    Name = "fly speed",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "studs",
+    CurrentValue = 200,
+    Flag = "flyspeed",
+    Callback = function(Value) speed = Value end,
+})
+
+-- SPEED ESCAPE TAB
+local SpeedTab = Window:CreateTab("+1 speed escape", nil)
+SpeedTab:CreateParagraph({
+    Title = "how to use",
+    Content = "Press the [E] key on your keyboard to add +1 walkspeed each press! Resets on respawn."
+})
+
+local SpeedEscapeToggle = SpeedTab:CreateToggle({
+    Name = "enable +1 speed keyboard (E)",
+    CurrentValue = true,
+    Flag = "speedescape",
+    Callback = function(Value)
+        speedBoostActive = Value
+    end,
+})
+
+local ResetSpeedBtn = SpeedTab:CreateButton({
+    Name = "reset speed bonus",
+    Callback = function()
+        currentSpeedBonus = 0
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = baseSpeed end
+        Rayfield:Notify({ Title = "reset", Content = "speed bonus reset to 0", Duration = 2 })
+    end,
+})
+
+local CurrentSpeedLabel = SpeedTab:CreateParagraph({
+    Title = "current bonus",
+    Content = "+0 walkspeed (press E to increase)"
+})
+
+-- Live update label
+task.spawn(function()
+    local last = -1
+    while true do
+        if currentSpeedBonus ~= last then
+            last = currentSpeedBonus
+            pcall(function()
+                CurrentSpeedLabel:Set({ Content = "+" .. currentSpeedBonus .. " walkspeed (total: " .. (baseSpeed + currentSpeedBonus) .. ")" })
+            end)
+        end
+        task.wait(0.3)
+    end
+end)
+
+-- EXECUTOR TAB
+local ExecutorTab = Window:CreateTab("your executor:", nil)
+local currentExecutor = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "web / unknown exploit"
+local ExecPara = ExecutorTab:CreateParagraph({
+    Title = "active exploit:",
+    Content = "you are currently running this script on: " .. tostring(currentExecutor)
+})
+
+local CopyBtn = ExecutorTab:CreateButton({
+    Name = "copy executor name",
+    Callback = function()
+        if setclipboard then
+            setclipboard(tostring(currentExecutor))
+            Rayfield:Notify({ Title = "copied", Content = "copied to clipboard", Duration = 3 })
+        else
+            Rayfield:Notify({ Title = "error", Content = "clipboard not supported", Duration = 3 })
+        end
+    end,
+})
+
+--==============================================================
+-- FLOATING BUTTON (opens Rayfield UI)
+--==============================================================
+local rayfieldVisible = true
+createFloatingButton(function()
+    rayfieldVisible = not rayfieldVisible
+    pcall(function()
+        local coreGui = game:GetService("CoreGui")
+        for _, v in ipairs(coreGui:GetChildren()) do
+            if v.Name == "Rayfield" or v:FindFirstChild("Rayfield") then
+                if v:IsA("ScreenGui") then
+                    v.Enabled = rayfieldVisible
+                end
+            end
+        end
+    end)
+end)
+
+-- Initial welcome notification
+task.wait(0.5)
+Rayfield:Notify({
+    Title = "YINETSU HUB LOADED",
+    Content = "Welcome " .. LocalPlayer.DisplayName .. "! Press [E] for +1 speed.",
+    Duration = 5,
+})
