@@ -4,22 +4,88 @@
      ╚████╔╝ ██║██╔██╗ ██║█████╗     ██║   ███████╗██║   ██║    ███████║██║   ██║██████╔╝
       ╚██╔╝  ██║██║╚██╗██║██╔══╝     ██║   ╚════██║██║   ██║    ██╔══██║██║   ██║██╔══██╗
        ██║   ██║██║ ╚████║███████╗   ██║   ███████║╚██████╔╝    ██║  ██║╚██████╔╝██████╔╝
-       ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚══════╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ 
-                                    +1 SPEED KEYBOARD ESCAPE
+       ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚══════╝ ╚═════╝     ╚═╝  ╚═╝ ╚═════╝ ╚═════╝
+                       CUSTOM GUI | MOBILE EDITION | +1 SPEED ESCAPE
 ]]
 
--- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
 local LocalPlayer = Players.LocalPlayer
 
+-- Mobile check
+local IS_MOBILE = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
 --==============================================================
--- LOADING SCREEN (WELCOME + AVATAR)
+-- RGB HUE (shared)
+--==============================================================
+local hue = 0
+local function rgbColor(offset)
+    return Color3.fromHSV((hue + (offset or 0)) % 1, 0.85, 1)
+end
+task.spawn(function()
+    while true do
+        hue = (hue + 0.004) % 1
+        RunService.RenderStepped:Wait()
+    end
+end)
+
+--==============================================================
+-- HELPERS
+--==============================================================
+local function createCorner(parent, r)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, r or 10)
+    c.Parent = parent
+    return c
+end
+
+local function createStroke(parent, t, color)
+    local s = Instance.new("UIStroke")
+    s.Thickness = t or 1
+    s.Color = color or Color3.fromRGB(255,255,255)
+    s.Parent = parent
+    return s
+end
+
+-- Universal drag (works on BOTH mobile + PC)
+local function makeDraggable(frame, dragHandle)
+    dragHandle = dragHandle or frame
+    local dragging, dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    dragHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+
+    dragHandle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then update(input) end
+    end)
+end
+
+--==============================================================
+-- LOADING SCREEN (Mobile friendly sizing)
 --==============================================================
 local function createLoadingScreen()
     local gui = Instance.new("ScreenGui")
@@ -31,301 +97,222 @@ local function createLoadingScreen()
 
     local bg = Instance.new("Frame")
     bg.Size = UDim2.new(1, 0, 1, 0)
-    bg.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    bg.BackgroundColor3 = Color3.fromRGB(8, 8, 14)
     bg.BorderSizePixel = 0
     bg.Parent = gui
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
+    local bgGrad = Instance.new("UIGradient")
+    bgGrad.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 0, 40)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 10, 30)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 20)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(8, 8, 20)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 25)),
     }
-    gradient.Rotation = 45
-    gradient.Parent = bg
+    bgGrad.Rotation = 45
+    bgGrad.Parent = bg
 
-    -- Title
+    -- TITLE (scales with screen)
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 80)
-    title.Position = UDim2.new(0, 0, 0.25, 0)
+    title.Size = UDim2.new(0.9, 0, 0, 80)
+    title.Position = UDim2.new(0.05, 0, 0.2, 0)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBlack
     title.Text = "YINETSU HUB"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextScaled = true
+    title.TextColor3 = Color3.fromRGB(255,255,255)
     title.TextStrokeTransparency = 0
     title.TextStrokeColor3 = Color3.fromRGB(180, 0, 255)
+    title.TextScaled = true
     title.Parent = bg
+    local tsc = Instance.new("UITextSizeConstraint")
+    tsc.MaxTextSize = 80
+    tsc.MinTextSize = 30
+    tsc.Parent = title
 
-    local titleScale = Instance.new("UITextSizeConstraint")
-    titleScale.MaxTextSize = 80
-    titleScale.Parent = title
-
-    -- Subtitle
     local sub = Instance.new("TextLabel")
-    sub.Size = UDim2.new(1, 0, 0, 30)
-    sub.Position = UDim2.new(0, 0, 0.35, 0)
+    sub.Size = UDim2.new(0.9, 0, 0, 24)
+    sub.Position = UDim2.new(0.05, 0, 0.3, 0)
     sub.BackgroundTransparency = 1
     sub.Font = Enum.Font.GothamBold
-    sub.Text = "+1 SPEED KEYBOARD ESCAPE"
+    sub.Text = "◆  +1 SPEED KEYBOARD ESCAPE  ◆"
     sub.TextColor3 = Color3.fromRGB(180, 180, 255)
     sub.TextScaled = true
     sub.Parent = bg
+    local ssc = Instance.new("UITextSizeConstraint")
+    ssc.MaxTextSize = 18
+    ssc.Parent = sub
 
-    local subScale = Instance.new("UITextSizeConstraint")
-    subScale.MaxTextSize = 22
-    subScale.Parent = sub
-
-    -- Avatar container
+    -- AVATAR (relative to screen)
+    local avSize = IS_MOBILE and 110 or 140
     local avatarFrame = Instance.new("Frame")
-    avatarFrame.Size = UDim2.new(0, 140, 0, 140)
-    avatarFrame.Position = UDim2.new(0.5, -70, 0.5, 0)
-    avatarFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    avatarFrame.Size = UDim2.new(0, avSize, 0, avSize)
+    avatarFrame.Position = UDim2.new(0.5, -avSize/2, 0.42, 0)
+    avatarFrame.BackgroundColor3 = Color3.fromRGB(255,255,255)
     avatarFrame.BorderSizePixel = 0
     avatarFrame.Parent = bg
+    createCorner(avatarFrame, avSize/2)
 
-    local avatarCorner = Instance.new("UICorner")
-    avatarCorner.CornerRadius = UDim.new(1, 0)
-    avatarCorner.Parent = avatarFrame
+    local avStroke = createStroke(avatarFrame, 4, rgbColor(0))
 
-    local avatarStroke = Instance.new("UIStroke")
-    avatarStroke.Thickness = 4
-    avatarStroke.Color = Color3.fromRGB(180, 0, 255)
-    avatarStroke.Parent = avatarFrame
+    local avImg = Instance.new("ImageLabel")
+    avImg.Size = UDim2.new(1, -10, 1, -10)
+    avImg.Position = UDim2.new(0, 5, 0, 5)
+    avImg.BackgroundTransparency = 1
+    avImg.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420"
+    avImg.Parent = avatarFrame
+    createCorner(avImg, (avSize-10)/2)
 
-    local avatarImg = Instance.new("ImageLabel")
-    avatarImg.Size = UDim2.new(1, -10, 1, -10)
-    avatarImg.Position = UDim2.new(0, 5, 0, 5)
-    avatarImg.BackgroundTransparency = 1
-    avatarImg.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420"
-    avatarImg.Parent = avatarFrame
-
-    local avatarImgCorner = Instance.new("UICorner")
-    avatarImgCorner.CornerRadius = UDim.new(1, 0)
-    avatarImgCorner.Parent = avatarImg
-
-    -- Welcome text
+    -- WELCOME
     local welcome = Instance.new("TextLabel")
-    welcome.Size = UDim2.new(1, 0, 0, 40)
-    welcome.Position = UDim2.new(0, 0, 0.72, 0)
+    welcome.Size = UDim2.new(0.9, 0, 0, 40)
+    welcome.Position = UDim2.new(0.05, 0, 0.68, 0)
     welcome.BackgroundTransparency = 1
-    welcome.Font = Enum.Font.GothamBold
+    welcome.Font = Enum.Font.GothamBlack
     welcome.Text = "WELCOME, " .. string.upper(LocalPlayer.DisplayName)
-    welcome.TextColor3 = Color3.fromRGB(255, 255, 255)
+    welcome.TextColor3 = Color3.fromRGB(255,255,255)
     welcome.TextScaled = true
     welcome.Parent = bg
+    local wsc = Instance.new("UITextSizeConstraint")
+    wsc.MaxTextSize = 28
+    wsc.MinTextSize = 16
+    wsc.Parent = welcome
 
-    local welcomeScale = Instance.new("UITextSizeConstraint")
-    welcomeScale.MaxTextSize = 32
-    welcomeScale.Parent = welcome
-
-    -- Loading bar
+    -- LOADING BAR
+    local barW = IS_MOBILE and 0.75 or 0.5
     local barBg = Instance.new("Frame")
-    barBg.Size = UDim2.new(0, 400, 0, 8)
-    barBg.Position = UDim2.new(0.5, -200, 0.82, 0)
-    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    barBg.Size = UDim2.new(barW, 0, 0, 10)
+    barBg.Position = UDim2.new(0.5 - barW/2, 0, 0.78, 0)
+    barBg.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     barBg.BorderSizePixel = 0
     barBg.Parent = bg
-
-    local barBgCorner = Instance.new("UICorner")
-    barBgCorner.CornerRadius = UDim.new(1, 0)
-    barBgCorner.Parent = barBg
+    createCorner(barBg, 5)
 
     local barFill = Instance.new("Frame")
     barFill.Size = UDim2.new(0, 0, 1, 0)
     barFill.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
     barFill.BorderSizePixel = 0
     barFill.Parent = barBg
+    createCorner(barFill, 5)
 
-    local barFillCorner = Instance.new("UICorner")
-    barFillCorner.CornerRadius = UDim.new(1, 0)
-    barFillCorner.Parent = barFill
-
-    local barGradient = Instance.new("UIGradient")
-    barGradient.Color = ColorSequence.new{
+    local barGrad = Instance.new("UIGradient")
+    barGrad.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 150)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255)),
     }
-    barGradient.Parent = barFill
+    barGrad.Parent = barFill
 
-    -- Status text
     local status = Instance.new("TextLabel")
-    status.Size = UDim2.new(1, 0, 0, 20)
-    status.Position = UDim2.new(0, 0, 0.86, 0)
+    status.Size = UDim2.new(0.9, 0, 0, 20)
+    status.Position = UDim2.new(0.05, 0, 0.83, 0)
     status.BackgroundTransparency = 1
     status.Font = Enum.Font.Gotham
     status.Text = "Initializing..."
-    status.TextColor3 = Color3.fromRGB(180, 180, 200)
-    status.TextSize = 14
+    status.TextColor3 = Color3.fromRGB(180,180,200)
+    status.TextSize = 13
     status.Parent = bg
 
-    -- RGB animation on stroke
     task.spawn(function()
-        local hue = 0
         while gui.Parent do
-            hue = (hue + 0.01) % 1
-            avatarStroke.Color = Color3.fromHSV(hue, 1, 1)
-            title.TextStrokeColor3 = Color3.fromHSV(hue, 1, 1)
+            avStroke.Color = rgbColor(0)
+            title.TextStrokeColor3 = rgbColor(0)
+            barGrad.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, rgbColor(0.3)),
+                ColorSequenceKeypoint.new(1, rgbColor(0.7)),
+            }
             RunService.RenderStepped:Wait()
         end
     end)
 
-    -- Loading animation
     local steps = {
         {text = "Loading modules...", progress = 0.2},
         {text = "Fetching avatar...", progress = 0.4},
         {text = "Bypassing anti-cheat...", progress = 0.6},
-        {text = "Injecting YINETSU HUB...", progress = 0.8},
+        {text = "Injecting YINETSU HUB...", progress = 0.85},
         {text = "Welcome, " .. LocalPlayer.DisplayName .. "!", progress = 1},
     }
-
     for _, step in ipairs(steps) do
         status.Text = step.text
-        TweenService:Create(barFill, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(step.progress, 0, 1, 0)
-        }):Play()
-        task.wait(0.5)
+        TweenService:Create(barFill, TweenInfo.new(0.4), {Size = UDim2.new(step.progress, 0, 1, 0)}):Play()
+        task.wait(0.4)
     end
-
-    task.wait(0.6)
-    TweenService:Create(bg, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+    task.wait(0.5)
+    TweenService:Create(bg, TweenInfo.new(0.7), {BackgroundTransparency = 1}):Play()
     for _, v in ipairs(bg:GetDescendants()) do
         if v:IsA("TextLabel") or v:IsA("ImageLabel") then
-            TweenService:Create(v, TweenInfo.new(0.8), {TextTransparency = 1, ImageTransparency = 1}):Play()
+            TweenService:Create(v, TweenInfo.new(0.7), {TextTransparency = 1, ImageTransparency = 1}):Play()
         elseif v:IsA("Frame") then
-            TweenService:Create(v, TweenInfo.new(0.8), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(v, TweenInfo.new(0.7), {BackgroundTransparency = 1}):Play()
         elseif v:IsA("UIStroke") then
-            TweenService:Create(v, TweenInfo.new(0.8), {Transparency = 1}):Play()
+            TweenService:Create(v, TweenInfo.new(0.7), {Transparency = 1}):Play()
         end
     end
-    task.wait(0.9)
+    task.wait(0.8)
     gui:Destroy()
 end
-
 createLoadingScreen()
 
 --==============================================================
--- GODMODE (bypasses client traps/npc)
+-- BYPASSES
 --==============================================================
 local oldNewIndex
 oldNewIndex = hookmetamethod(game, "__newindex", function(self, key, value)
     if not checkcaller() and key == "Health" and self:IsA("Humanoid") then
         local character = LocalPlayer.Character
         if character and self:IsDescendantOf(character) then
-            if type(value) == "number" and value <= 0 then
-                return
-            end
+            if type(value) == "number" and value <= 0 then return end
         end
     end
     return oldNewIndex(self, key, value)
 end)
 
---==============================================================
--- NPC ZONES
---==============================================================
-local npcZoneTags = {
-    "NPC9_Zone", "NPC10_AttackZone", "NPC12_LabyrinthZone",
-    "NPC15_Zone", "NPC15_SpeedZone", "MacaronMonster_AttackZone"
-}
-local function destroyZone(inst)
-    if inst and inst.Parent then inst:Destroy() end
-end
+local npcZoneTags = {"NPC9_Zone","NPC10_AttackZone","NPC12_LabyrinthZone","NPC15_Zone","NPC15_SpeedZone","MacaronMonster_AttackZone"}
+local function destroyZone(inst) if inst and inst.Parent then inst:Destroy() end end
 for _, tag in ipairs(npcZoneTags) do
-    for _, inst in ipairs(CollectionService:GetTagged(tag)) do
-        destroyZone(inst)
-    end
-    CollectionService:GetInstanceAddedSignal(tag):Connect(function(inst)
-        task.defer(destroyZone, inst)
-    end)
+    for _, inst in ipairs(CollectionService:GetTagged(tag)) do destroyZone(inst) end
+    CollectionService:GetInstanceAddedSignal(tag):Connect(function(inst) task.defer(destroyZone, inst) end)
 end
 
---==============================================================
--- NPC DESTROY
---==============================================================
-local npcNames = {
-    ["NPC9"] = true, ["NPC10"] = true, ["NPC12"] = true,
-    ["NPC15"] = true, ["NPC_MacaronMonster"] = true
-}
+local npcNames = {["NPC9"]=true,["NPC10"]=true,["NPC12"]=true,["NPC15"]=true,["NPC_MacaronMonster"]=true}
 local function handleWorkspaceDescendant(desc)
-    if npcNames[desc.Name] then
-        task.defer(function()
-            if desc.Parent then desc:Destroy() end
-        end)
-    end
+    if npcNames[desc.Name] then task.defer(function() if desc.Parent then desc:Destroy() end end) end
 end
-for _, desc in ipairs(workspace:GetDescendants()) do
-    handleWorkspaceDescendant(desc)
-end
+for _, desc in ipairs(workspace:GetDescendants()) do handleWorkspaceDescendant(desc) end
 workspace.DescendantAdded:Connect(handleWorkspaceDescendant)
 
---==============================================================
--- TRAP DISARMER
---==============================================================
-local trapTags = { "CrushTrap", "LavaTrap", "MovingWallModel", "TsunamiModel" }
+local trapTags = {"CrushTrap","LavaTrap","MovingWallModel","TsunamiModel"}
 local function disableTrapPart(part)
     if part:IsA("BasePart") then
         local name = part.Name
         if string.find(name, "MovingWall") or name == "WallL" or name == "WallR" or name == "LavaPart" or name == "Tsunami" then
-            part.CanCollide = false
-            part.CanTouch = false
-            part.Transparency = 0.6
+            part.CanCollide = false; part.CanTouch = false; part.Transparency = 0.6
         end
     end
 end
 for _, tag in ipairs(trapTags) do
     for _, trap in ipairs(CollectionService:GetTagged(tag)) do
-        for _, desc in ipairs(trap:GetDescendants()) do
-            disableTrapPart(desc)
-        end
+        for _, desc in ipairs(trap:GetDescendants()) do disableTrapPart(desc) end
         trap.DescendantAdded:Connect(disableTrapPart)
     end
     CollectionService:GetInstanceAddedSignal(tag):Connect(function(trap)
-        for _, desc in ipairs(trap:GetDescendants()) do
-            disableTrapPart(desc)
-        end
+        for _, desc in ipairs(trap:GetDescendants()) do disableTrapPart(desc) end
         trap.DescendantAdded:Connect(disableTrapPart)
     end)
 end
 
 --==============================================================
--- PATH TO FOLLOW
+-- PATH & FARM
 --==============================================================
 local path = {
-    Vector3.new(-538.81, 54.73, 1467.41),
-    Vector3.new(-1087.84, 54.72, 1467.17),
-    Vector3.new(-1092.34, 296.73, 1467.14),
-    Vector3.new(-1240.36, 302.92, 1469.17),
-    Vector3.new(-1378.21, 290.70, 1468.16),
-    Vector3.new(-1422.84, 335.34, 1469.52),
-    Vector3.new(-1506.04, 337.10, 1469.52),
-    Vector3.new(-1622.44, 321.50, 1469.52),
-    Vector3.new(-1816.66, 301.41, 1467.65),
-    Vector3.new(-1861.17, 317.35, 1468.30),
-    Vector3.new(-2012.61, 307.68, 1467.25),
-    Vector3.new(-2155.17, 317.56, 1467.23),
-    Vector3.new(-2176.93, 325.10, 1467.23),
-    Vector3.new(-2314.67, 315.22, 1467.26),
-    Vector3.new(-2345.06, 326.15, 1467.24),
-    Vector3.new(-2515.24, 322.99, 1467.24),
-    Vector3.new(-2664.66, 294.50, 1480.21),
-    Vector3.new(-2780.65, 306.12, 1477.10),
-    Vector3.new(-2789.97, 309.54, 1477.40),
-    Vector3.new(-2946.51, 296.72, 1477.03),
-    Vector3.new(-3943.46, 296.73, 1475.96),
-    Vector3.new(-4302.24, 296.71, 1473.44),
-    Vector3.new(-4303.76, 343.73, 1473.44),
-    Vector3.new(-4310.13, 343.75, 1488.40),
-    Vector3.new(-4319.32, 398.57, 1603.56),
-    Vector3.new(-4347.34, 400.42, 1610.86),
-    Vector3.new(-4347.62, 407.62, 1571.09),
-    Vector3.new(-4348.67, 418.48, 1438.44),
-    Vector3.new(-4349.52, 434.76, 1406.09),
-    Vector3.new(-4327.20, 434.89, 1393.84),
-    Vector3.new(-4238.68, 436.17, 1393.75),
-    Vector3.new(-4322.98, 440.25, 1493.15),
-    Vector3.new(-4325.81, 471.13, 1509.14),
-    Vector3.new(-4383.67, 471.24, 1537.19),
-    Vector3.new(-5346, 477, 1460)
+    Vector3.new(-538.81,54.73,1467.41),Vector3.new(-1087.84,54.72,1467.17),Vector3.new(-1092.34,296.73,1467.14),
+    Vector3.new(-1240.36,302.92,1469.17),Vector3.new(-1378.21,290.70,1468.16),Vector3.new(-1422.84,335.34,1469.52),
+    Vector3.new(-1506.04,337.10,1469.52),Vector3.new(-1622.44,321.50,1469.52),Vector3.new(-1816.66,301.41,1467.65),
+    Vector3.new(-1861.17,317.35,1468.30),Vector3.new(-2012.61,307.68,1467.25),Vector3.new(-2155.17,317.56,1467.23),
+    Vector3.new(-2176.93,325.10,1467.23),Vector3.new(-2314.67,315.22,1467.26),Vector3.new(-2345.06,326.15,1467.24),
+    Vector3.new(-2515.24,322.99,1467.24),Vector3.new(-2664.66,294.50,1480.21),Vector3.new(-2780.65,306.12,1477.10),
+    Vector3.new(-2789.97,309.54,1477.40),Vector3.new(-2946.51,296.72,1477.03),Vector3.new(-3943.46,296.73,1475.96),
+    Vector3.new(-4302.24,296.71,1473.44),Vector3.new(-4303.76,343.73,1473.44),Vector3.new(-4310.13,343.75,1488.40),
+    Vector3.new(-4319.32,398.57,1603.56),Vector3.new(-4347.34,400.42,1610.86),Vector3.new(-4347.62,407.62,1571.09),
+    Vector3.new(-4348.67,418.48,1438.44),Vector3.new(-4349.52,434.76,1406.09),Vector3.new(-4327.20,434.89,1393.84),
+    Vector3.new(-4238.68,436.17,1393.75),Vector3.new(-4322.98,440.25,1493.15),Vector3.new(-4325.81,471.13,1509.14),
+    Vector3.new(-4383.67,471.24,1537.19),Vector3.new(-5346,477,1460)
 }
 local speed = 200
 local autoFarmActive = false
@@ -350,10 +337,8 @@ local function startFarm()
             local character, hrp = getCharacterAndHRP()
             if character and hrp then
                 local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-                local checkpointEvent = remotes and remotes:FindFirstChild("RequestCheckpointTp")
-                if checkpointEvent then
-                    checkpointEvent:FireServer(6, "wins")
-                end
+                local cpEvent = remotes and remotes:FindFirstChild("RequestCheckpointTp")
+                if cpEvent then cpEvent:FireServer(6, "wins") end
                 task.wait(0.5)
                 if not autoFarmActive then break end
                 for _, targetPos in ipairs(path) do
@@ -366,17 +351,15 @@ local function startFarm()
                     local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos)})
                     tween:Play()
                     local completed = false
-                    local connection
-                    connection = tween.Completed:Connect(function() completed = true end)
+                    local conn
+                    conn = tween.Completed:Connect(function() completed = true end)
                     while not completed and autoFarmActive do
                         task.wait()
                         if not hrp or not hrp.Parent or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then
-                            tween:Cancel()
-                            if connection then connection:Disconnect() end
-                            break
+                            tween:Cancel(); if conn then conn:Disconnect() end; break
                         end
                     end
-                    if connection then connection:Disconnect() end
+                    if conn then conn:Disconnect() end
                     if not completed then break end
                 end
                 if not autoFarmActive then break end
@@ -392,280 +375,655 @@ local function startFarm()
 end
 
 --==============================================================
--- +1 SPEED KEYBOARD ESCAPE (Press E)
+-- +1 SPEED (Keyboard E + on-screen button for mobile)
 --==============================================================
 local speedBoostActive = true
 local baseSpeed = 16
 local currentSpeedBonus = 0
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.E and speedBoostActive then
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            currentSpeedBonus = currentSpeedBonus + 1
-            hum.WalkSpeed = baseSpeed + currentSpeedBonus
-            -- popup notification
-            game:GetService("StarterGui"):SetCore("SendNotification", {
+local function addSpeed()
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        currentSpeedBonus = currentSpeedBonus + 1
+        hum.WalkSpeed = baseSpeed + currentSpeedBonus
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {
                 Title = "YINETSU HUB",
-                Text = "+1 Speed! Total bonus: " .. currentSpeedBonus .. " (WalkSpeed: " .. (baseSpeed + currentSpeedBonus) .. ")",
-                Duration = 2,
+                Text = "+1 Speed! Bonus: " .. currentSpeedBonus .. " | WalkSpeed: " .. (baseSpeed + currentSpeedBonus),
+                Duration = 1.5,
             })
-        end
+        end)
     end
+end
+
+-- Keyboard (PC support pa rin)
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.E and speedBoostActive then addSpeed() end
 end)
 
--- Reset on respawn
 LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(1)
     currentSpeedBonus = 0
 end)
 
 --==============================================================
--- RGB FLOATING TOGGLE BUTTON (draggable)
+-- COMPONENTS (Bigger for mobile)
 --==============================================================
-local function createFloatingButton(onClick)
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "YinetsuFloatingBtn"
-    gui.ResetOnSpawn = false
-    gui.DisplayOrder = 9998
-    gui.Parent = game:GetService("CoreGui")
+local BTN_HEIGHT = IS_MOBILE and 48 or 40
+local ROW_HEIGHT = IS_MOBILE and 56 or 45
+local FONT_SIZE = IS_MOBILE and 15 or 14
 
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 60, 0, 60)
-    btn.Position = UDim2.new(0, 20, 0.5, -30)
-    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    btn.Text = "Y"
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.GothamBlack
-    btn.TextSize = 28
-    btn.AutoButtonColor = false
-    btn.BorderSizePixel = 0
-    btn.Active = true
-    btn.Draggable = true
-    btn.Parent = gui
+local function createToggle(parent, labelText, defaultVal, callback)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -16, 0, ROW_HEIGHT)
+    row.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+    row.BorderSizePixel = 0
+    row.Parent = parent
+    createCorner(row, 8)
+    createStroke(row, 1, Color3.fromRGB(50,50,70))
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = btn
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -100, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium
+    label.Text = labelText
+    label.TextColor3 = Color3.fromRGB(230,230,240)
+    label.TextSize = FONT_SIZE
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Thickness = 3
-    stroke.Color = Color3.fromRGB(180, 0, 255)
-    stroke.Parent = btn
+    local tBtn = Instance.new("TextButton")
+    tBtn.Size = UDim2.new(0, 56, 0, 30)
+    tBtn.Position = UDim2.new(1, -68, 0.5, -15)
+    tBtn.BackgroundColor3 = defaultVal and rgbColor(0) or Color3.fromRGB(50,50,65)
+    tBtn.Text = ""
+    tBtn.AutoButtonColor = false
+    tBtn.BorderSizePixel = 0
+    tBtn.Parent = row
+    createCorner(tBtn, 15)
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 150)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 0, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255)),
-    }
-    gradient.Rotation = 45
-    gradient.Parent = btn
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 24, 0, 24)
+    knob.Position = defaultVal and UDim2.new(1, -27, 0.5, -12) or UDim2.new(0, 3, 0.5, -12)
+    knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    knob.BorderSizePixel = 0
+    knob.Parent = tBtn
+    createCorner(knob, 12)
 
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(0, 200, 0, 20)
-    titleLabel.Position = UDim2.new(0, -70, 0, -26)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "YINETSU HUB"
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 14
-    titleLabel.TextStrokeTransparency = 0.5
-    titleLabel.Parent = btn
+    local state = defaultVal
+    tBtn.MouseButton1Click:Connect(function()
+        state = not state
+        TweenService:Create(knob, TweenInfo.new(0.18), {
+            Position = state and UDim2.new(1, -27, 0.5, -12) or UDim2.new(0, 3, 0.5, -12)
+        }):Play()
+        TweenService:Create(tBtn, TweenInfo.new(0.18), {
+            BackgroundColor3 = state and rgbColor(0) or Color3.fromRGB(50,50,65)
+        }):Play()
+        if callback then callback(state) end
+    end)
 
-    -- RGB Animation
     task.spawn(function()
-        local hue = 0
-        while gui.Parent do
-            hue = (hue + 0.008) % 1
-            stroke.Color = Color3.fromHSV(hue, 1, 1)
-            gradient.Rotation = (gradient.Rotation + 2) % 360
+        while row.Parent do
+            if state then tBtn.BackgroundColor3 = rgbColor(0) end
             RunService.RenderStepped:Wait()
         end
     end)
+    return row
+end
 
-    -- Pulse animation
-    task.spawn(function()
-        while gui.Parent do
-            TweenService:Create(btn, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 65, 0, 65)}):Play()
-            task.wait(0.8)
-            TweenService:Create(btn, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 60, 0, 60)}):Play()
-            task.wait(0.8)
+local function createSlider(parent, labelText, min, max, default, suffix, callback)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -16, 0, IS_MOBILE and 75 or 65)
+    row.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+    row.BorderSizePixel = 0
+    row.Parent = parent
+    createCorner(row, 8)
+    createStroke(row, 1, Color3.fromRGB(50,50,70))
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Position = UDim2.new(0, 15, 0, 8)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium
+    label.Text = labelText .. ": " .. default .. (suffix and " " .. suffix or "")
+    label.TextColor3 = Color3.fromRGB(230,230,240)
+    label.TextSize = FONT_SIZE
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
+
+    local track = Instance.new("Frame")
+    track.Size = UDim2.new(1, -30, 0, IS_MOBILE and 14 or 8)
+    track.Position = UDim2.new(0, 15, 1, IS_MOBILE and -28 or -20)
+    track.BackgroundColor3 = Color3.fromRGB(40,40,55)
+    track.BorderSizePixel = 0
+    track.Parent = row
+    createCorner(track, 7)
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((default - min)/(max - min), 0, 1, 0)
+    fill.BackgroundColor3 = rgbColor(0)
+    fill.BorderSizePixel = 0
+    fill.Parent = track
+    createCorner(fill, 7)
+
+    local knobSz = IS_MOBILE and 24 or 16
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, knobSz, 0, knobSz)
+    knob.Position = UDim2.new((default - min)/(max - min), -knobSz/2, 0.5, -knobSz/2)
+    knob.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    knob.BorderSizePixel = 0
+    knob.Parent = track
+    createCorner(knob, knobSz/2)
+
+    local dragging = false
+    local value = default
+
+    local function update(x)
+        local rel = math.clamp((x - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+        value = math.floor(min + (max - min) * rel)
+        fill.Size = UDim2.new(rel, 0, 1, 0)
+        knob.Position = UDim2.new(rel, -knobSz/2, 0.5, -knobSz/2)
+        label.Text = labelText .. ": " .. value .. (suffix and " " .. suffix or "")
+        if callback then callback(value) end
+    end
+
+    -- For mobile: use big invisible hitbox
+    local hitbox = Instance.new("TextButton")
+    hitbox.Size = UDim2.new(1, 0, 0, IS_MOBILE and 50 or 20)
+    hitbox.Position = UDim2.new(0, 0, 0.5, IS_MOBILE and -5 or 0)
+    hitbox.BackgroundTransparency = 1
+    hitbox.Text = ""
+    hitbox.Parent = track
+
+    hitbox.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            update(i.Position.X)
+        end
+    end)
+    hitbox.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            update(i.Position.X)
         end
     end)
 
-    -- Click
+    task.spawn(function()
+        while row.Parent do fill.BackgroundColor3 = rgbColor(0) RunService.RenderStepped:Wait() end
+    end)
+    return row
+end
+
+local function createButton(parent, labelText, callback, customColor)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -16, 0, BTN_HEIGHT)
+    btn.BackgroundColor3 = customColor or Color3.fromRGB(30,30,42)
+    btn.Text = labelText
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.TextSize = FONT_SIZE
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Parent = parent
+    createCorner(btn, 8)
+    local stroke = createStroke(btn, 1.5, rgbColor(0))
+
     btn.MouseButton1Click:Connect(function()
-        btn.Text = "..."
+        TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(1, -20, 0, BTN_HEIGHT - 2)}):Play()
         task.wait(0.1)
-        btn.Text = "Y"
-        if onClick then onClick() end
+        TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(1, -16, 0, BTN_HEIGHT)}):Play()
+        if callback then callback() end
     end)
 
-    return gui
+    if not customColor then
+        task.spawn(function()
+            while btn.Parent do stroke.Color = rgbColor(0) RunService.RenderStepped:Wait() end
+        end)
+    end
+    return btn
+end
+
+local function createParagraph(parent, titleText, contentText)
+    local para = Instance.new("Frame")
+    para.Size = UDim2.new(1, -16, 0, IS_MOBILE and 70 or 60)
+    para.BackgroundColor3 = Color3.fromRGB(18,18,26)
+    para.BorderSizePixel = 0
+    para.Parent = parent
+    createCorner(para, 8)
+    local ps = createStroke(para, 1, Color3.fromRGB(60,40,90))
+
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -20, 0, 20)
+    t.Position = UDim2.new(0, 12, 0, 8)
+    t.BackgroundTransparency = 1
+    t.Font = Enum.Font.GothamBold
+    t.Text = titleText
+    t.TextColor3 = rgbColor(0)
+    t.TextSize = IS_MOBILE and 14 or 13
+    t.TextXAlignment = Enum.TextXAlignment.Left
+    t.Parent = para
+
+    local c = Instance.new("TextLabel")
+    c.Size = UDim2.new(1, -20, 1, -30)
+    c.Position = UDim2.new(0, 12, 0, 28)
+    c.BackgroundTransparency = 1
+    c.Font = Enum.Font.Gotham
+    c.Text = contentText
+    c.TextColor3 = Color3.fromRGB(180,180,200)
+    c.TextSize = IS_MOBILE and 13 or 12
+    c.TextWrapped = true
+    c.TextYAlignment = Enum.TextYAlignment.Top
+    c.TextXAlignment = Enum.TextXAlignment.Left
+    c.Parent = para
+
+    task.spawn(function()
+        while para.Parent do t.TextColor3 = rgbColor(0) ps.Color = rgbColor(0.5) RunService.RenderStepped:Wait() end
+    end)
+    return para
 end
 
 --==============================================================
--- RAYFIELD GUI (with RGB theme)
+-- MAIN WINDOW (Mobile sized)
 --==============================================================
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "YinetsuHubMain"
+screenGui.ResetOnSpawn = false
+screenGui.DisplayOrder = 9998
+screenGui.Parent = game:GetService("CoreGui")
 
-local Window = Rayfield:CreateWindow({
-    Name = "YINETSU HUB | +1 SPEED ESCAPE",
-    LoadingTitle = "YINETSU HUB Loading...",
-    LoadingSubtitle = "by @vearytry",
-    ConfigurationSaving = {
-        Enabled = false,
-        FolderName = nil,
-        FileName = "yinetsu_hub_cfg"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "noinvitelink",
-        RememberJoins = true
-    },
-    KeySystem = false
-})
+-- Adaptive size
+local main
+if IS_MOBILE then
+    -- Mobile: take most of screen width, but not full
+    main = Instance.new("Frame")
+    main.Size = UDim2.new(0.92, 0, 0.75, 0)
+    main.Position = UDim2.new(0.04, 0, 0.12, 0)
+else
+    main = Instance.new("Frame")
+    main.Size = UDim2.new(0, 520, 0, 400)
+    main.Position = UDim2.new(0.5, -260, 0.5, -200)
+end
+main.BackgroundColor3 = Color3.fromRGB(14,14,20)
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = screenGui
+createCorner(main, 14)
+local mainStroke = createStroke(main, 2, rgbColor(0))
 
--- RGB Theme Animation on Rayfield
-task.spawn(function()
-    local hue = 0
-    while Window do
-        hue = (hue + 0.005) % 1
-        local color = Color3.fromHSV(hue, 0.9, 1)
-        pcall(function()
-            Rayfield:ModifyTheme({
-                {"Topbar", "Background", color},
-                {"Topbar", "Title", Color3.new(1, 1, 1)},
-                {"Tab", "Selected", color},
-                {"Toggle", "Fill", color},
-                {"Slider", "Bar", color},
-                {"Button", "Background", color},
-                {"Dropdown", "Background", color},
-            })
-        end)
-        task.wait(0.1)
+local mainGrad = Instance.new("UIGradient")
+mainGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(14,14,20)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(24,16,36)),
+}
+mainGrad.Rotation = 90
+mainGrad.Parent = main
+
+-- TOP BAR (drag handle)
+local topbarH = IS_MOBILE and 50 or 45
+local topbar = Instance.new("Frame")
+topbar.Size = UDim2.new(1, 0, 0, topbarH)
+topbar.BackgroundColor3 = Color3.fromRGB(20,20,30)
+topbar.BorderSizePixel = 0
+topbar.Parent = main
+createCorner(topbar, 14)
+local maskFix = Instance.new("Frame")
+maskFix.Size = UDim2.new(1, 0, 0, 14)
+maskFix.Position = UDim2.new(0, 0, 1, -14)
+maskFix.BackgroundColor3 = Color3.fromRGB(20,20,30)
+maskFix.BorderSizePixel = 0
+maskFix.Parent = topbar
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -130, 1, 0)
+titleLabel.Position = UDim2.new(0, 20, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.GothamBlack
+titleLabel.Text = "YINETSU HUB"
+titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
+titleLabel.TextSize = IS_MOBILE and 22 or 20
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = topbar
+
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(0, 200, 1, 0)
+subLabel.Position = UDim2.new(1, -240, 0, 0)
+subLabel.BackgroundTransparency = 1
+subLabel.Font = Enum.Font.Gotham
+subLabel.Text = "+1 SPEED ESCAPE"
+subLabel.TextColor3 = rgbColor(0)
+subLabel.TextSize = 11
+subLabel.TextXAlignment = Enum.TextXAlignment.Right
+subLabel.Parent = topbar
+
+-- Buttons (mobile bigger)
+local btnSz = IS_MOBILE and 36 or 26
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, btnSz, 0, btnSz)
+closeBtn.Position = UDim2.new(1, -(btnSz + 8), 0.5, -btnSz/2)
+closeBtn.BackgroundColor3 = Color3.fromRGB(220,60,80)
+closeBtn.Text = "✕"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.TextSize = IS_MOBILE and 18 or 14
+closeBtn.AutoButtonColor = false
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = topbar
+createCorner(closeBtn, 8)
+closeBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(main, TweenInfo.new(0.2), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    task.wait(0.2)
+    screenGui.Enabled = false
+    main.Size = IS_MOBILE and UDim2.new(0.92, 0, 0.75, 0) or UDim2.new(0, 520, 0, 400)
+end)
+
+-- SIDEBAR
+local sideW = IS_MOBILE and 110 or 140
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, sideW, 1, -(topbarH + 10))
+sidebar.Position = UDim2.new(0, 8, 0, topbarH + 5)
+sidebar.BackgroundColor3 = Color3.fromRGB(18,18,28)
+sidebar.BorderSizePixel = 0
+sidebar.Parent = main
+createCorner(sidebar, 10)
+
+local sideLayout = Instance.new("UIListLayout")
+sideLayout.Padding = UDim.new(0, 6)
+sideLayout.Parent = sidebar
+local sidePad = Instance.new("UIPadding")
+sidePad.PaddingTop = UDim.new(0, 8)
+sidePad.PaddingLeft = UDim.new(0, 6)
+sidePad.PaddingRight = UDim.new(0, 6)
+sidePad.Parent = sidebar
+
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, -(sideW + 24), 1, -(topbarH + 10))
+content.Position = UDim2.new(0, sideW + 16, 0, topbarH + 5)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+local pages = {}
+local tabButtons = {}
+local activePage = nil
+
+local function showPage(name)
+    for n, p in pairs(pages) do p.Visible = (n == name) end
+    for n, b in pairs(tabButtons) do
+        TweenService:Create(b, TweenInfo.new(0.15), {
+            BackgroundColor3 = (n == name) and Color3.fromRGB(40,25,60) or Color3.fromRGB(24,24,34)
+        }):Play()
+    end
+    activePage = name
+end
+
+local function createPage(name)
+    local page = Instance.new("ScrollingFrame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.BorderSizePixel = 0
+    page.ScrollBarThickness = IS_MOBILE and 6 or 4
+    page.ScrollBarImageColor3 = rgbColor(0)
+    page.CanvasSize = UDim2.new(0, 0, 0, 0)
+    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    page.Visible = false
+    page.Parent = content
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 8)
+    layout.Parent = page
+    local pad = Instance.new("UIPadding")
+    pad.PaddingTop = UDim.new(0, 4)
+    pad.PaddingLeft = UDim.new(0, 4)
+    pad.PaddingRight = UDim.new(0, 4)
+    pad.PaddingBottom = UDim.new(0, 8)
+    pad.Parent = page
+
+    pages[name] = page
+    return page
+end
+
+local function createTabBtn(name, displayName)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, IS_MOBILE and 44 or 36)
+    btn.BackgroundColor3 = Color3.fromRGB(24,24,34)
+    btn.Text = "  " .. displayName
+    btn.Font = Enum.Font.GothamMedium
+    btn.TextColor3 = Color3.fromRGB(220,220,235)
+    btn.TextSize = IS_MOBILE and 13 or 13
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Parent = sidebar
+    createCorner(btn, 8)
+    btn.MouseButton1Click:Connect(function() showPage(name) end)
+    tabButtons[name] = btn
+    return btn
+end
+
+--==============================================================
+-- PAGES
+--==============================================================
+local farmPage = createPage("farm")
+local speedPage = createPage("speed")
+local execPage = createPage("exec")
+
+createTabBtn("farm", "🏠 Farm")
+createTabBtn("speed", "⚡ Speed")
+createTabBtn("exec", "💻 Exec")
+
+-- FARM
+createParagraph(farmPage, "HEADS UP", "Auto farm requires at least 200 wins in balance.")
+createParagraph(farmPage, "BYPASS STATE", "Bypasses loaded — NPCs & traps disabled.")
+createToggle(farmPage, "Start Auto Farm", false, function(v)
+    autoFarmActive = v
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "YINETSU HUB",
+            Text = v and "Farm started" or "Farm stopped",
+            Duration = 2,
+        })
+    end)
+    if v then startFarm() end
+end)
+createSlider(farmPage, "Fly Speed", 50, 500, 200, "studs", function(v) speed = v end)
+
+-- SPEED TAB
+if IS_MOBILE then
+    createParagraph(speedPage, "HOW TO USE", "Tap the big +1 SPEED button below to add speed! No keyboard needed.")
+else
+    createParagraph(speedPage, "HOW TO USE", "Press [E] on keyboard OR tap the big button below.")
+end
+createToggle(speedPage, "Enable +1 Speed", true, function(v) speedBoostActive = v end)
+
+-- BIG +1 SPEED BUTTON
+local bigSpeedBtn = Instance.new("TextButton")
+bigSpeedBtn.Size = UDim2.new(1, -16, 0, IS_MOBILE and 70 or 60)
+bigSpeedBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+bigSpeedBtn.Text = "+1 SPEED  ⚡  (TAP)"
+bigSpeedBtn.Font = Enum.Font.GothamBlack
+bigSpeedBtn.TextColor3 = Color3.fromRGB(255,255,255)
+bigSpeedBtn.TextSize = IS_MOBILE and 20 or 18
+bigSpeedBtn.AutoButtonColor = false
+bigSpeedBtn.BorderSizePixel = 0
+bigSpeedBtn.Parent = speedPage
+createCorner(bigSpeedBtn, 12)
+local bigStroke = createStroke(bigSpeedBtn, 3, rgbColor(0))
+
+bigSpeedBtn.MouseButton1Click:Connect(function()
+    if speedBoostActive then
+        addSpeed()
+        TweenService:Create(bigSpeedBtn, TweenInfo.new(0.08), {Size = UDim2.new(1, -22, 0, (IS_MOBILE and 70 or 60) - 4)}):Play()
+        task.wait(0.08)
+        TweenService:Create(bigSpeedBtn, TweenInfo.new(0.08), {Size = UDim2.new(1, -16, 0, IS_MOBILE and 70 or 60)}):Play()
     end
 end)
 
-local MainTab = Window:CreateTab("main farm", nil)
-local AlertPara = MainTab:CreateParagraph({ Title = "heads up", Content = "auto farm required at least 200 wins at balance" })
-local BypassPara = MainTab:CreateParagraph({ Title = "bypass state", Content = "bypasses loaded, npc and traps disabled." })
+task.spawn(function()
+    while bigSpeedBtn.Parent do
+        bigStroke.Color = rgbColor(0)
+        bigSpeedBtn.BackgroundColor3 = rgbColor(0.5)
+        RunService.RenderStepped:Wait()
+    end
+end)
 
-local FarmToggle = MainTab:CreateToggle({
-    Name = "start auto farm",
-    CurrentValue = false,
-    Flag = "autofarmtoggle",
-    Callback = function(Value)
-        autoFarmActive = Value
-        if autoFarmActive then
-            Rayfield:Notify({ Title = "farm active", Content = "farm started", Duration = 3 })
-            startFarm()
-        else
-            Rayfield:Notify({ Title = "farm stopped", Content = "farm stopped", Duration = 3 })
-        end
-    end,
-})
+local speedInfo = createParagraph(speedPage, "CURRENT BONUS", "+0 walkspeed (total: 16)")
 
-local SpeedSlider = MainTab:CreateSlider({
-    Name = "fly speed",
-    Range = {50, 500},
-    Increment = 10,
-    Suffix = "studs",
-    CurrentValue = 200,
-    Flag = "flyspeed",
-    Callback = function(Value) speed = Value end,
-})
+createButton(speedPage, "🔄 RESET SPEED BONUS", function()
+    currentSpeedBonus = 0
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then hum.WalkSpeed = baseSpeed end
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {Title="YINETSU HUB", Text="Speed bonus reset", Duration=2})
+    end)
+end, Color3.fromRGB(180, 60, 60))
 
--- SPEED ESCAPE TAB
-local SpeedTab = Window:CreateTab("+1 speed escape", nil)
-SpeedTab:CreateParagraph({
-    Title = "how to use",
-    Content = "Press the [E] key on your keyboard to add +1 walkspeed each press! Resets on respawn."
-})
-
-local SpeedEscapeToggle = SpeedTab:CreateToggle({
-    Name = "enable +1 speed keyboard (E)",
-    CurrentValue = true,
-    Flag = "speedescape",
-    Callback = function(Value)
-        speedBoostActive = Value
-    end,
-})
-
-local ResetSpeedBtn = SpeedTab:CreateButton({
-    Name = "reset speed bonus",
-    Callback = function()
-        currentSpeedBonus = 0
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = baseSpeed end
-        Rayfield:Notify({ Title = "reset", Content = "speed bonus reset to 0", Duration = 2 })
-    end,
-})
-
-local CurrentSpeedLabel = SpeedTab:CreateParagraph({
-    Title = "current bonus",
-    Content = "+0 walkspeed (press E to increase)"
-})
-
--- Live update label
 task.spawn(function()
     local last = -1
-    while true do
+    while speedInfo.Parent do
         if currentSpeedBonus ~= last then
             last = currentSpeedBonus
-            pcall(function()
-                CurrentSpeedLabel:Set({ Content = "+" .. currentSpeedBonus .. " walkspeed (total: " .. (baseSpeed + currentSpeedBonus) .. ")" })
-            end)
+            local labels = {}
+            for _, v in ipairs(speedInfo:GetChildren()) do
+                if v:IsA("TextLabel") then table.insert(labels, v) end
+            end
+            if labels[2] then
+                labels[2].Text = "+" .. currentSpeedBonus .. " walkspeed (total: " .. (baseSpeed + currentSpeedBonus) .. ")"
+            end
         end
         task.wait(0.3)
     end
 end)
 
--- EXECUTOR TAB
-local ExecutorTab = Window:CreateTab("your executor:", nil)
-local currentExecutor = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "web / unknown exploit"
-local ExecPara = ExecutorTab:CreateParagraph({
-    Title = "active exploit:",
-    Content = "you are currently running this script on: " .. tostring(currentExecutor)
-})
-
-local CopyBtn = ExecutorTab:CreateButton({
-    Name = "copy executor name",
-    Callback = function()
-        if setclipboard then
-            setclipboard(tostring(currentExecutor))
-            Rayfield:Notify({ Title = "copied", Content = "copied to clipboard", Duration = 3 })
-        else
-            Rayfield:Notify({ Title = "error", Content = "clipboard not supported", Duration = 3 })
-        end
-    end,
-})
-
---==============================================================
--- FLOATING BUTTON (opens Rayfield UI)
---==============================================================
-local rayfieldVisible = true
-createFloatingButton(function()
-    rayfieldVisible = not rayfieldVisible
-    pcall(function()
-        local coreGui = game:GetService("CoreGui")
-        for _, v in ipairs(coreGui:GetChildren()) do
-            if v.Name == "Rayfield" or v:FindFirstChild("Rayfield") then
-                if v:IsA("ScreenGui") then
-                    v.Enabled = rayfieldVisible
-                end
-            end
-        end
-    end)
+-- EXEC PAGE
+local executorName = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "web / unknown exploit"
+createParagraph(execPage, "ACTIVE EXPLOIT", "Running on: " .. tostring(executorName))
+createButton(execPage, "📋 COPY EXECUTOR NAME", function()
+    if setclipboard then
+        setclipboard(tostring(executorName))
+        pcall(function()
+            StarterGui:SetCore("SendNotification", {Title="Copied", Text="Copied to clipboard", Duration=2})
+        end)
+    end
 end)
 
--- Initial welcome notification
+showPage("farm")
+
+-- Draggable top bar (both PC + mobile)
+makeDraggable(main, topbar)
+
+-- RGB stroke loop
+task.spawn(function()
+    while main.Parent do
+        mainStroke.Color = rgbColor(0)
+        subLabel.TextColor3 = rgbColor(0.3)
+        RunService.RenderStepped:Wait()
+    end
+end)
+
+--==============================================================
+-- FLOATING BUTTON (Mobile touch-drag)
+--==============================================================
+local function createFloatingBtn()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "YinetsuFloat"
+    gui.ResetOnSpawn = false
+    gui.DisplayOrder = 9999
+    gui.Parent = game:GetService("CoreGui")
+
+    local btnSz = IS_MOBILE and 70 or 62
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, btnSz, 0, btnSz)
+    btn.Position = UDim2.new(0, 20, 0.5, -btnSz/2)
+    btn.BackgroundColor3 = Color3.fromRGB(25,20,40)
+    btn.Text = "Y"
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.GothamBlack
+    btn.TextSize = IS_MOBILE and 30 or 26
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Active = true
+    btn.Parent = gui
+    createCorner(btn, btnSz/2)
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 3
+    stroke.Color = rgbColor(0)
+    stroke.Parent = btn
+
+    local grad = Instance.new("UIGradient")
+    grad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,150)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180,0,255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0,200,255)),
+    }
+    grad.Rotation = 45
+    grad.Parent = btn
+
+    -- RGB
+    task.spawn(function()
+        local lh = 0
+        while gui.Parent do
+            lh = (lh + 0.006) % 1
+            stroke.Color = Color3.fromHSV(lh, 1, 1)
+            grad.Rotation = (grad.Rotation + 1.5) % 360
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    -- Pulse
+    task.spawn(function()
+        while gui.Parent do
+            TweenService:Create(btn, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Size = UDim2.new(0, btnSz + 6, 0, btnSz + 6)
+            }):Play()
+            task.wait(1)
+            TweenService:Create(btn, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Size = UDim2.new(0, btnSz, 0, btnSz)
+            }):Play()
+            task.wait(1)
+        end
+    end)
+
+    -- Touch drag vs tap detection
+    makeDraggable(btn)
+
+    local tapStart = nil
+    local moved = false
+    btn.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.Touch or i.UserInputType == Enum.UserInputType.MouseButton1 then
+            tapStart = tick()
+            moved = false
+        end
+    end)
+    btn.InputChanged:Connect(function(i)
+        if (i.UserInputType == Enum.UserInputType.Touch or i.UserInputType == Enum.UserInputType.MouseMovement) and tapStart then
+            if (tick() - tapStart) > 0.15 then moved = true end
+        end
+    end)
+    btn.MouseButton1Click:Connect(function()
+        if not moved then
+            screenGui.Enabled = not screenGui.Enabled
+            TweenService:Create(btn, TweenInfo.new(0.1), {TextSize = (IS_MOBILE and 30 or 26) + 6}):Play()
+            task.wait(0.1)
+            TweenService:Create(btn, TweenInfo.new(0.1), {TextSize = IS_MOBILE and 30 or 26}):Play()
+        end
+    end)
+end
+
+createFloatingBtn()
+
+-- Welcome notif
 task.wait(0.5)
-Rayfield:Notify({
-    Title = "YINETSU HUB LOADED",
-    Content = "Welcome " .. LocalPlayer.DisplayName .. "! Press [E] for +1 speed.",
-    Duration = 5,
-})
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "YINETSU HUB LOADED",
+        Text = IS_MOBILE and ("Welcome " .. LocalPlayer.DisplayName .. "! Tap big +1 SPEED button.") or ("Welcome " .. LocalPlayer.DisplayName .. "! Press [E] or use +1 SPEED button."),
+        Duration = 5,
+    })
+end)
